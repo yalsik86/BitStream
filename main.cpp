@@ -1,5 +1,10 @@
 #include "ExchangeConnectors/BinanceFeed.hpp"
 
 int main() {
-    std::cout<<"H\n";
+    BinanceFeed feed;
+
+    feed.connect();
+    feed.readLoop();
+
+    return 0;
 }
