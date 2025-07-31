@@ -9,5 +9,6 @@ class BinanceFeed : public IExchangeFeed {
 
   private:
     net::io_context ioc;
-    websocket::stream<tcp::socket> ws;
+    ssl::context ssl_ctx;
+    websocket::stream<ssl::stream<tcp::socket>> ws;
 };

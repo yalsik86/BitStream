@@ -1,13 +1,22 @@
 #include "BinanceFeed.hpp"
 #include <iostream>
 
-BinanceFeed::BinanceFeed() : ws(ioc) {}
+BinanceFeed::BinanceFeed() : ssl_ctx(ssl::context::sslv23_client), ws(ioc, ssl_ctx) {
+    ssl_ctx.set_default_verify_paths();
+}
 
 void BinanceFeed::connect() {
+    boost::beast::flat_buffer buffer;
     tcp::resolver resolver(ioc);
-    auto endpoints = resolver.resolve("stream.binance.com", "9443");
-    net::connect(ws.next_layer(), endpoints);
+    auto const results = resolver.resolve("stream.binance.com", "9443");
+
+    net::connect(ws.next_layer().next_layer(), results);
+    ws.next_layer().handshake(ssl::stream_base::client);
     ws.handshake("stream.binance.com", "/ws/btcusdt@depth");
+    std::cout <<"[+] Connected and handshake complete\n";
+
+    ws.read(buffer);
+    std::cout<<"Received: "<<boost::beast::make_printable(buffer.data())<<"\n";
 }
 
 void BinanceFeed::readLoop() {
