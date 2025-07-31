@@ -32,3 +32,47 @@
 *.app
 
 /.vscode
+
+# === CMake-generated files ===
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+build/
+build-*/
+
+build.ninja
+.ninja_deps
+.ninja_log
+
+# === Binaries & Objects ===
+*.o
+*.obj
+*.so
+*.a
+*.out
+*.exe
+
+# === IDE/Editor Configs ===
+.vscode/
+*.code-workspace
+.idea/
+compile_commands.json
+
+# === System/Editor Trash ===
+*.swp
+*.swo
+*.tmp
+*.bak
+*.log
+*.core
+core.*
+.DS_Store
+Thumbs.db
+
+# === Test Files ===
+test_*
+*.test.cpp
+
+downloads/
+received_*
