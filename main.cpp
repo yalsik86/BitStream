@@ -1,7 +1,9 @@
 #include "ExchangeConnectors/BinanceFeed.hpp"
+#include "ExchangeConnectors/CoinbaseFeed.hpp"
 
 int main() {
-    BinanceFeed feed;
+    CoinbaseFeed feed;
+    // BinanceFeed feed;
 
     feed.connect();
     feed.readLoop();

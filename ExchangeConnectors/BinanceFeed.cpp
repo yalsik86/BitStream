@@ -1,7 +1,6 @@
 #include "BinanceFeed.hpp"
-#include <iostream>
 
-BinanceFeed::BinanceFeed() : ssl_ctx(ssl::context::sslv23_client), ws(ioc, ssl_ctx) {
+BinanceFeed::BinanceFeed() : ssl_ctx(ssl::context::tls_client), ws(ioc, ssl_ctx) {
     ssl_ctx.set_default_verify_paths();
 }
 
@@ -12,11 +11,8 @@ void BinanceFeed::connect() {
 
     net::connect(ws.next_layer().next_layer(), results);
     ws.next_layer().handshake(ssl::stream_base::client);
-    ws.handshake("stream.binance.com", "/ws/btcusdt@depth");
+    ws.handshake("stream.binance.com", "/ws/btcusdt@ticker");
     std::cout <<"[+] Connected and handshake complete\n";
-
-    ws.read(buffer);
-    std::cout<<"Received: "<<boost::beast::make_printable(buffer.data())<<"\n";
 }
 
 void BinanceFeed::readLoop() {
