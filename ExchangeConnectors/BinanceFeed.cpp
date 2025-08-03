@@ -11,8 +11,15 @@ void BinanceFeed::connect() {
 
     net::connect(ws.next_layer().next_layer(), results);
     ws.next_layer().handshake(ssl::stream_base::client);
-    ws.handshake("stream.binance.com", "/ws/btcusdt@ticker");
+    ws.handshake("stream.binance.com", "/ws");
     std::cout <<"[+] Connected and handshake complete\n";
+
+    nlohmann::json msg = {
+        {"method", "SUBSCRIBE"},
+        {"params", {"btcusdt@ticker"}},
+        {"id", 1}
+    };
+    ws.write(net::buffer(msg.dump()));
 }
 
 void BinanceFeed::readLoop() {

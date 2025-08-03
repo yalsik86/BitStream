@@ -5,9 +5,9 @@
 
 int main() {
     // CoinbaseFeed feed;
-    // BinanceFeed feed;
+    BinanceFeed feed;
     // KrakenFeed feed;
-    CryptoComFeed feed;
+    // CryptoComFeed feed;
 
     feed.connect();
     feed.readLoop();

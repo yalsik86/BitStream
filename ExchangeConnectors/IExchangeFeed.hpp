@@ -1,5 +1,6 @@
 #pragma once
 
+#include <nlohmann/json.hpp>
 #include <boost/beast/ssl.hpp>
 #include <boost/asio/ssl.hpp>
 #include <boost/beast.hpp>

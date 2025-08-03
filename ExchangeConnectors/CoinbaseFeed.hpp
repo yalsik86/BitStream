@@ -1,6 +1,5 @@
 #pragma once
 #include "IExchangeFeed.hpp"
-#include <nlohmann/json.hpp>
 
 class CoinbaseFeed : public IExchangeFeed {
   public:

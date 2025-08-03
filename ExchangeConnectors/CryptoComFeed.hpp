@@ -1,6 +1,5 @@
 #pragma once
 #include "IExchangeFeed.hpp"
-#include <nlohmann/json.hpp>
 
 class CryptoComFeed : public IExchangeFeed {
   public:
