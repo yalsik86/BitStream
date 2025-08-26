@@ -25,7 +25,7 @@ void KrakenFeed::connect() {
     ws.write(net::buffer(msg.dump()));
 }
 
-void KrakenFeed::readLoop() {
+void KrakenFeed::receiveUpdates() {
     beast::flat_buffer buffer;
 
     while(true) {

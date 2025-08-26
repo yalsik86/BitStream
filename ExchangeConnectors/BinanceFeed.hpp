@@ -5,7 +5,7 @@ class BinanceFeed : public IExchangeFeed {
   public:
     BinanceFeed();
     void connect() override;
-    void readLoop();
+    void receiveUpdates() override;
 
   private:
     net::io_context ioc;

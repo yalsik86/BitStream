@@ -5,7 +5,7 @@ class CoinbaseFeed : public IExchangeFeed {
   public:
     CoinbaseFeed();
     void connect() override;
-    void readLoop();
+    void receiveUpdates() override;
 
   private:
     net::io_context ioc;

@@ -24,7 +24,7 @@ void CryptoComFeed::connect() {
     ws.write(net::buffer(msg.dump()));
 }
 
-void CryptoComFeed::readLoop() {
+void CryptoComFeed::receiveUpdates() {
     beast::flat_buffer buffer;
 
     while(true) {

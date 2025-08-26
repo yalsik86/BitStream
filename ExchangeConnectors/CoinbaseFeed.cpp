@@ -23,7 +23,7 @@ void CoinbaseFeed::connect() {
     ws.write(net::buffer(msg.dump()));
 }
 
-void CoinbaseFeed::readLoop() {
+void CoinbaseFeed::receiveUpdates() {
     beast::flat_buffer buffer;
 
     while(true) {

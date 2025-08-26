@@ -22,7 +22,7 @@ void BinanceFeed::connect() {
     ws.write(net::buffer(msg.dump()));
 }
 
-void BinanceFeed::readLoop() {
+void BinanceFeed::receiveUpdates() {
     beast::flat_buffer buffer;
 
     while(true) {

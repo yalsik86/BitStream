@@ -5,7 +5,7 @@ class KrakenFeed : public IExchangeFeed {
   public:
     KrakenFeed();
     void connect() override;
-    void readLoop();
+    void receiveUpdates() override;
 
   private:
     net::io_context ioc;

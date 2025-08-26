@@ -5,7 +5,7 @@ class CryptoComFeed : public IExchangeFeed {
   public:
     CryptoComFeed();
     void connect() override;
-    void readLoop();
+    void receiveUpdates() override;
 
   private:
     net::io_context ioc;

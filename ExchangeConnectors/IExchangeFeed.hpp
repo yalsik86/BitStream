@@ -19,5 +19,5 @@ class IExchangeFeed {
     virtual ~IExchangeFeed() = default;
 
     virtual void connect() = 0;
-    virtual void readLoop() = 0;
+    virtual void receiveUpdates() = 0;
 };
