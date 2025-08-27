@@ -1,11 +1,14 @@
 #pragma once
 
+#include "../Structs/ExchangeUpdate.hpp"
+
 #include <nlohmann/json.hpp>
 #include <boost/beast/ssl.hpp>
 #include <boost/asio/ssl.hpp>
 #include <boost/beast.hpp>
 #include <boost/asio.hpp>
 #include <iostream>
+#include <optional>
 
 namespace beast = boost::beast;
 namespace http = beast::http;
@@ -20,4 +23,5 @@ class IExchangeFeed {
 
     virtual void connect() = 0;
     virtual void receiveUpdates() = 0;
+    virtual std::optional<ExchangeUpdate> parseRaw(const std::string&) = 0;
 };

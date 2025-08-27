@@ -7,6 +7,7 @@ class CoinbaseFeed : public IExchangeFeed {
     CoinbaseFeed(AggregatorEngine& engine);
     void connect() override;
     void receiveUpdates() override;
+    std::optional<ExchangeUpdate> parseRaw(const std::string&) override;
 
   private:
     AggregatorEngine& engine;
