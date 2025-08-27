@@ -1,6 +1,7 @@
 #include "BinanceFeed.hpp"
 
-BinanceFeed::BinanceFeed() : ssl_ctx(ssl::context::tls_client), ws(ioc, ssl_ctx) {
+BinanceFeed::BinanceFeed(AggregatorEngine& engine) : 
+    ssl_ctx(ssl::context::tls_client), ws(ioc, ssl_ctx), engine(engine) {
     ssl_ctx.set_default_verify_paths();
 }
 
@@ -29,7 +30,7 @@ void BinanceFeed::receiveUpdates() {
         try {
             ws.read(buffer);
             std::string msg = beast::buffers_to_string(buffer.data());
-            std::cout <<"[Binance] Received: "<< msg << std::endl;
+            engine.ingestRaw("Binance", msg);
             buffer.consume(buffer.size());
         } catch (const beast::system_error& e) {
             std::cerr <<"WebSocket read error: "<< e.what() << std::endl;

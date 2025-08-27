@@ -12,3 +12,7 @@ void AggregatorEngine::start() {
         }));
     }
 }
+
+void AggregatorEngine::ingestRaw(const std::string& exchange, const std::string& rawData) {
+    std::cout<<exchange<<" "<<rawData<<"\n";
+}

@@ -16,8 +16,8 @@ int main() {
 
     AggregatorEngine engine;
 
-    engine.addConnector(std::make_unique<BinanceFeed>());
-    engine.addConnector(std::make_unique<CoinbaseFeed>());
+    engine.addConnector(std::make_unique<BinanceFeed>(engine));
+    engine.addConnector(std::make_unique<CoinbaseFeed>(engine));
 
     engine.start();
 

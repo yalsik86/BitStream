@@ -1,13 +1,15 @@
 #pragma once
 #include "IExchangeFeed.hpp"
+#include "../AggregatorEngine/AggregatorEngine.hpp"
 
 class CoinbaseFeed : public IExchangeFeed {
   public:
-    CoinbaseFeed();
+    CoinbaseFeed(AggregatorEngine& engine);
     void connect() override;
     void receiveUpdates() override;
 
   private:
+    AggregatorEngine& engine;
     net::io_context ioc;
     ssl::context ssl_ctx;
     websocket::stream<ssl::stream<tcp::socket>> ws;
