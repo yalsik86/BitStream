@@ -1,6 +1,7 @@
 #include "KrakenFeed.hpp"
 
-KrakenFeed::KrakenFeed() : ssl_ctx(ssl::context::tls_client), ws(ioc, ssl_ctx) {
+KrakenFeed::KrakenFeed(AggregatorEngine& engine) : 
+    ssl_ctx(ssl::context::tls_client), ws(ioc, ssl_ctx), engine(engine) {
     ssl_ctx.set_default_verify_paths();
 }
 
@@ -13,7 +14,7 @@ void KrakenFeed::connect() {
     SSL_set_tlsext_host_name(ws.next_layer().native_handle(), "ws.kraken.com");
     ws.next_layer().handshake(ssl::stream_base::client);
     ws.handshake("ws.kraken.com", "/v2");
-    std::cout <<"[+] Connected and handshake complete\n";
+    std::cout <<"[+][Kraken] Connected and handshake complete\n";
 
     nlohmann::json msg = {
         {"method", "subscribe"},
@@ -31,12 +32,45 @@ void KrakenFeed::receiveUpdates() {
     while(true) {
         try {
             ws.read(buffer);
-            std::string msg = beast::buffers_to_string(buffer.data());
-            std::cout <<"[Kraken] Received: "<< msg << std::endl;
+            std::string raw = beast::buffers_to_string(buffer.data());
+            
+            auto update = parseRaw(raw);
+            if(update.has_value()) {
+                engine.ingestUpdate(update.value());
+            }
             buffer.consume(buffer.size());
         } catch (const beast::system_error& e) {
             std::cerr <<"WebSocket read error: "<< e.what() << std::endl;
             break;
         }
     }
+}
+
+std::optional<ExchangeUpdate> KrakenFeed::parseRaw(const std::string& raw) {
+    auto j = nlohmann::json::parse(raw, nullptr, false);
+    if(j.is_discarded()) {
+        return std::nullopt;
+    }
+
+    if(!j.contains("channel") || j["channel"] != "ticker") {
+        return std::nullopt;
+    }
+
+    if(!j.contains("data") || !j["data"].is_array() || j["data"].empty()) {
+        return std::nullopt;
+    }
+
+    const auto& data = j["data"][0];
+
+    ExchangeUpdate update;
+    update.exchange = "Kraken";
+    update.symbol = data["symbol"];
+
+    update.bidPrice = data["bid"].get<double>();
+    update.bidSize = data["bid_qty"].get<double>();
+    update.askPrice = data["ask"].get<double>();
+    update.askSize = data["ask_qty"].get<double>();
+    update.lastPrice = data["last"].get<double>();
+
+    return update;
 }
