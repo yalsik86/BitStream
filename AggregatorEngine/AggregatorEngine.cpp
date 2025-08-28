@@ -18,7 +18,23 @@ void AggregatorEngine::ingestRaw(const std::string& exchange, const std::string&
 }
 
 void AggregatorEngine::ingestUpdate(const ExchangeUpdate& update) {
-    std::cout << std::fixed << std::setprecision(8)
-        <<"["<<update.exchange<<"] "<<update.symbol<<"\n"
-        <<"| Bid: "<<update.bidPrice<<" | Ask: "<<update.askPrice<<"\n";
+    snapshots[update.exchange] = update;
+
+    for(auto& [otherEx, otherUpd]: snapshots) {
+        if(otherEx==update.exchange) continue;
+
+        MarketDataEvent event;
+        event.symbol = update.symbol;
+
+        event.exchange1 = update.exchange;
+        event.exchange2 = otherEx;
+
+        event.spread12 = otherUpd.askPrice - update.bidPrice;
+        event.spread21 = update.askPrice - otherUpd.bidPrice;
+
+        std::cout << std::fixed << std::setprecision(4)
+        <<"["<<event.symbol<<"]\n"
+        <<"["<<event.exchange1<<"] - ["<<event.exchange2<<"]\n"
+        <<"| Spread12: "<<event.spread12<<" | Spread21: "<<event.spread21<<"\n";
+    }
 }
