@@ -3,6 +3,8 @@
 #include "../Structs/MarketDataEvent.hpp"
 #include "../Structs/ExchangeUpdate.hpp"
 #include <unordered_map>
+#include <memory>
+#include <mutex>
 #include <thread>
 
 class AggregatorEngine {
@@ -16,4 +18,5 @@ class AggregatorEngine {
     std::unordered_map<std::string, ExchangeUpdate> snapshots; // latest updates
     std::vector<std::unique_ptr<IExchangeFeed>> connectors;
     std::vector<std::jthread> threads;
+    std::mutex ingestion_mtx;
 };

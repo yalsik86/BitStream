@@ -18,6 +18,7 @@ void AggregatorEngine::ingestRaw(const std::string& exchange, const std::string&
 }
 
 void AggregatorEngine::ingestUpdate(const ExchangeUpdate& update) {
+    std::unique_lock<std::mutex> lock(ingestion_mtx);
     snapshots[update.exchange] = update;
 
     for(auto& [otherEx, otherUpd]: snapshots) {
