@@ -19,6 +19,7 @@ int main() {
     engine.addConnector(std::make_unique<BinanceFeed>(engine));
     engine.addConnector(std::make_unique<CoinbaseFeed>(engine));
     engine.addConnector(std::make_unique<KrakenFeed>(engine));
+    engine.addConnector(std::make_unique<CryptoComFeed>(engine));
 
     engine.start();
 
