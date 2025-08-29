@@ -2,6 +2,7 @@
 #include "../ExchangeConnectors/IExchangeFeed.hpp"
 #include "../Structs/MarketDataEvent.hpp"
 #include "../Structs/ExchangeUpdate.hpp"
+#include "../Structs/GlobalBBO.hpp"
 #include <unordered_map>
 #include <memory>
 #include <mutex>
@@ -15,8 +16,11 @@ class AggregatorEngine {
     void ingestUpdate(const ExchangeUpdate& update);
 
   private:
-    std::unordered_map<std::string, ExchangeUpdate> snapshots; // latest updates
+    std::unordered_map<std::string, ExchangeUpdate> snapshots; // latest updates per-exchange
     std::vector<std::unique_ptr<IExchangeFeed>> connectors;
     std::vector<std::jthread> threads;
     std::mutex ingestion_mtx;
+
+    GlobalBBO globalBBO;
+    inline void updateGlobalBBO(const ExchangeUpdate& update);
 };
