@@ -59,6 +59,12 @@ void AggregatorEngine::ingestUpdate(const ExchangeUpdate& update) {
 
     updateGlobalBBO(update);
 
+    double updateImbalance = 0.0;
+    if(update.bidSize + update.askSize != 0) {
+        updateImbalance = (update.bidSize - update.askSize) / (update.bidSize + update.askSize);
+    }
+    exchangeImbalance[update.exchange] = updateImbalance;
+
     for(auto& [otherEx, otherUpd]: snapshots) {
         if(otherEx==update.exchange) continue;
 
@@ -79,12 +85,16 @@ void AggregatorEngine::ingestUpdate(const ExchangeUpdate& update) {
         event.bestAskPrice = globalBBO.bestAsk;
         event.bestAskSize = globalBBO.bestAskSize;
 
+        event.imbalance1 = updateImbalance;
+        event.imbalance2 = exchangeImbalance[otherEx];
+
         std::cout << std::fixed << std::setprecision(4)
         <<"------["<<event.symbol<<"]------\n"
         <<"["<<event.exchange1<<"] - ["<<event.exchange2<<"]\n"
         <<"| Spread12: "<<event.spread12<<" | Spread21: "<<event.spread21<<"\n"
         <<"| Global BBO: \n"
-        <<"    - Best Bid: "<<event.bestBidPrice<<" Size: "<<event.bestBidSize<<" @ "<<event.bestBidExchange<<"\n"
-        <<"    - Best Ask: "<<event.bestAskPrice<<" Size: "<<event.bestAskSize<<" @ "<<event.bestAskExchange<<"\n";
+        <<"    - Best Bid: "<<event.bestBidPrice<<" - Size: "<<event.bestBidSize<<" @ "<<event.bestBidExchange<<"\n"
+        <<"    - Best Ask: "<<event.bestAskPrice<<" - Size: "<<event.bestAskSize<<" @ "<<event.bestAskExchange<<"\n"
+        <<"| Imbalance1: "<<event.imbalance1<<" | Imbalance2: "<<event.imbalance2<<"\n";
     }
 }

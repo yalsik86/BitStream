@@ -19,4 +19,8 @@ struct MarketDataEvent {
     double bestAskPrice = 0.0;
     double bestAskSize  = 0.0;
     std::string bestAskExchange;
+
+    // top-of-book imbalance
+    double imbalance1 = 0.0;
+    double imbalance2 = 0.0;
 };
