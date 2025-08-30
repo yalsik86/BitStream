@@ -80,6 +80,9 @@ void AggregatorEngine::ingestUpdate(const ExchangeUpdate& update) {
     double updateImbalance = computeImbalance(update.bidSize, update.askSize);
     exchangeImbalance[update.exchange] = updateImbalance;
 
+    double updateMidPrice = (update.bidPrice + update.askPrice) / 2.0;
+    exchangeMidPrice[update.exchange] = updateMidPrice;
+
     for(const auto& [otherEx, otherUpd]: snapshots) {
         if(otherEx==update.exchange) continue;
 
@@ -88,10 +91,12 @@ void AggregatorEngine::ingestUpdate(const ExchangeUpdate& update) {
 
         event.exchange1 = update.exchange;
         event.exchange2 = otherEx;
-
+        
+        // Cross-exchange spread
         event.spread12 = otherUpd.askPrice - update.bidPrice;
         event.spread21 = update.askPrice - otherUpd.bidPrice;
 
+        // Global BBO
         event.bestBidExchange = globalBBO.bestBidEx;
         event.bestBidPrice = globalBBO.bestBid;
         event.bestBidSize = globalBBO.bestBidSize;
@@ -100,10 +105,17 @@ void AggregatorEngine::ingestUpdate(const ExchangeUpdate& update) {
         event.bestAskPrice = globalBBO.bestAsk;
         event.bestAskSize = globalBBO.bestAskSize;
 
+        // Top-of-Book Imbalance
         event.imbalance1 = updateImbalance;
         event.imbalance2 = exchangeImbalance[otherEx];
 
         event.aggImbalance = netImbalance.value;
+
+        // Mid-Price, Divergence
+        event.midPrice1 = updateMidPrice;
+        event.midPrice2 = exchangeMidPrice[otherEx];
+        // arbitrage indication
+        event.midPriceDivergence = std::abs(event.midPrice1 - event.midPrice2);
 
         std::cout << std::fixed << std::setprecision(4)
         <<"------["<<event.symbol<<"]------\n"
@@ -113,6 +125,8 @@ void AggregatorEngine::ingestUpdate(const ExchangeUpdate& update) {
         <<"    - Best Bid: "<<event.bestBidPrice<<" - Size: "<<event.bestBidSize<<" @ "<<event.bestBidExchange<<"\n"
         <<"    - Best Ask: "<<event.bestAskPrice<<" - Size: "<<event.bestAskSize<<" @ "<<event.bestAskExchange<<"\n"
         <<"| Imbalance1: "<<event.imbalance1<<" | Imbalance2: "<<event.imbalance2<<"\n"
-        <<"| Aggregate Imbalance: "<<event.aggImbalance<<"\n";
+        <<"| Aggregate Imbalance: "<<event.aggImbalance<<"\n"
+        <<"| Mid_Price1: "<<event.midPrice1<<" | Mid_Price2: "<<event.midPrice2<<"\n"
+        <<"    - Divergence: "<<event.midPriceDivergence<<"\n";
     }
 }

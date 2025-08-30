@@ -30,4 +30,6 @@ class AggregatorEngine {
 
     NetImbalance netImbalance;
     inline void updateNetImbalance(const ExchangeUpdate& update);
+
+    std::unordered_map<std::string, double> exchangeMidPrice;
 };
