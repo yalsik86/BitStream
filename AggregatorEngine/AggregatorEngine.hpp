@@ -31,5 +31,6 @@ class AggregatorEngine {
     NetImbalance netImbalance;
     inline void updateNetImbalance(const ExchangeUpdate& update);
 
-    std::unordered_map<std::string, double> exchangeMidPrice;
+    std::unordered_map<std::string, std::pair<double, double>> exchangeMidPrice;
+    inline std::pair<double, double> computeMidPrice(const ExchangeUpdate& update);
 };

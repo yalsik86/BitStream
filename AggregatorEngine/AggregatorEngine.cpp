@@ -66,6 +66,17 @@ inline void AggregatorEngine::updateNetImbalance(const ExchangeUpdate& update) {
     netImbalance.value = computeImbalance(netImbalance.totalBid, netImbalance.totalAsk);
 }
 
+inline std::pair<double, double> AggregatorEngine::computeMidPrice(const ExchangeUpdate& update) {
+    double updateSimpleMid = (update.bidPrice + update.askPrice) / 2.0;
+
+    double denominator = update.bidSize + update.askSize;
+    double updateWeightedMid = denominator > 0 
+        ? (update.bidPrice * update.askSize + update.askPrice * update.bidSize) / denominator
+        : updateSimpleMid;
+
+    return std::make_pair(updateSimpleMid, updateWeightedMid);
+}
+
 void AggregatorEngine::ingestRaw(const std::string& exchange, const std::string& rawData) {
     std::cout<<exchange<<" "<<rawData<<"\n";
 }
@@ -80,8 +91,8 @@ void AggregatorEngine::ingestUpdate(const ExchangeUpdate& update) {
     double updateImbalance = computeImbalance(update.bidSize, update.askSize);
     exchangeImbalance[update.exchange] = updateImbalance;
 
-    double updateMidPrice = (update.bidPrice + update.askPrice) / 2.0;
-    exchangeMidPrice[update.exchange] = updateMidPrice;
+    const auto& [updateSimpleMid, updateWeightedMid] = computeMidPrice(update);
+    exchangeMidPrice[update.exchange] = { updateSimpleMid, updateWeightedMid };
 
     for(const auto& [otherEx, otherUpd]: snapshots) {
         if(otherEx==update.exchange) continue;
@@ -112,10 +123,16 @@ void AggregatorEngine::ingestUpdate(const ExchangeUpdate& update) {
         event.aggImbalance = netImbalance.value;
 
         // Mid-Price, Divergence
-        event.midPrice1 = updateMidPrice;
-        event.midPrice2 = exchangeMidPrice[otherEx];
+        const auto& [otherSimpleMid, otherWeightedMid] = exchangeMidPrice[otherEx];
+        event.simpleMid1 = updateSimpleMid;
+        event.simpleMid2 = otherSimpleMid;
+
+        event.weightedMid1 = updateWeightedMid;
+        event.weightedMid2 = otherWeightedMid;
+        
         // arbitrage indication
-        event.midPriceDivergence = std::abs(event.midPrice1 - event.midPrice2);
+        event.simpleDivergence = std::abs(event.simpleMid1 - event.simpleMid2);
+        event.weightedDivergence = std::abs(event.weightedMid1 - event.weightedMid2);
 
         std::cout << std::fixed << std::setprecision(4)
         <<"------["<<event.symbol<<"]------\n"
@@ -126,7 +143,10 @@ void AggregatorEngine::ingestUpdate(const ExchangeUpdate& update) {
         <<"    - Best Ask: "<<event.bestAskPrice<<" - Size: "<<event.bestAskSize<<" @ "<<event.bestAskExchange<<"\n"
         <<"| Imbalance1: "<<event.imbalance1<<" | Imbalance2: "<<event.imbalance2<<"\n"
         <<"| Aggregate Imbalance: "<<event.aggImbalance<<"\n"
-        <<"| Mid_Price1: "<<event.midPrice1<<" | Mid_Price2: "<<event.midPrice2<<"\n"
-        <<"    - Divergence: "<<event.midPriceDivergence<<"\n";
+        <<"| Mid-Prices:\n"
+        <<"| Simple_Mid1: "<<event.simpleMid1<<" | Simple_Mid2: "<<event.simpleMid2<<"\n"
+        <<"| Weighted_Mid1: "<<event.weightedMid1<<" | Weighted_Mid2: "<<event.weightedMid2<<"\n"
+        <<"    - Simple Divergence: "<<event.simpleDivergence<<"\n"
+        <<"    - Weighted Divergence: "<<event.weightedDivergence<<"\n";
     }
 }

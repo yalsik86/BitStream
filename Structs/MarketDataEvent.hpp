@@ -27,7 +27,12 @@ struct MarketDataEvent {
     double aggImbalance = 0.0;
 
     // mid price
-    double midPrice1 = 0.0;
-    double midPrice2 = 0.0;
-    double midPriceDivergence = 0.0;
+    // simple
+    double simpleMid1 = 0.0;
+    double simpleMid2 = 0.0;
+    double simpleDivergence = 0.0;
+    // weighted
+    double weightedMid1 = 0.0;
+    double weightedMid2 = 0.0;
+    double weightedDivergence = 0.0;
 };
