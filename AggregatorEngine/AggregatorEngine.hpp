@@ -2,6 +2,7 @@
 #include "../ExchangeConnectors/IExchangeFeed.hpp"
 #include "../Structs/MarketDataEvent.hpp"
 #include "../Structs/ExchangeUpdate.hpp"
+#include "../Structs/NetImbalance.hpp"
 #include "../Structs/GlobalBBO.hpp"
 #include <unordered_map>
 #include <memory>
@@ -25,4 +26,6 @@ class AggregatorEngine {
     inline void updateGlobalBBO(const ExchangeUpdate& update);
 
     std::unordered_map<std::string, double> exchangeImbalance;
+    NetImbalance netImbalance;
+    inline void updateGlobalImbalance();
 };

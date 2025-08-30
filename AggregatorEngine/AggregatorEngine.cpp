@@ -55,6 +55,20 @@ void AggregatorEngine::ingestRaw(const std::string& exchange, const std::string&
 
 void AggregatorEngine::ingestUpdate(const ExchangeUpdate& update) {
     std::unique_lock<std::mutex> lock(ingestion_mtx);
+
+    auto it = snapshots.find(update.exchange);
+    if(it != snapshots.end()) {
+        netImbalance.totalBid -= it->second.bidSize;
+        netImbalance.totalAsk -= it->second.askSize;
+    }
+
+    netImbalance.totalBid += update.bidSize;
+    netImbalance.totalAsk += update.askSize;
+
+    if(netImbalance.totalBid + netImbalance.totalAsk != 0.0) {
+        netImbalance.value = (netImbalance.totalBid - netImbalance.totalAsk) / (netImbalance.totalBid + netImbalance.totalAsk);
+    }
+
     snapshots[update.exchange] = update;
 
     updateGlobalBBO(update);
@@ -88,6 +102,8 @@ void AggregatorEngine::ingestUpdate(const ExchangeUpdate& update) {
         event.imbalance1 = updateImbalance;
         event.imbalance2 = exchangeImbalance[otherEx];
 
+        event.aggImbalance = netImbalance.value;
+
         std::cout << std::fixed << std::setprecision(4)
         <<"------["<<event.symbol<<"]------\n"
         <<"["<<event.exchange1<<"] - ["<<event.exchange2<<"]\n"
@@ -95,6 +111,7 @@ void AggregatorEngine::ingestUpdate(const ExchangeUpdate& update) {
         <<"| Global BBO: \n"
         <<"    - Best Bid: "<<event.bestBidPrice<<" - Size: "<<event.bestBidSize<<" @ "<<event.bestBidExchange<<"\n"
         <<"    - Best Ask: "<<event.bestAskPrice<<" - Size: "<<event.bestAskSize<<" @ "<<event.bestAskExchange<<"\n"
-        <<"| Imbalance1: "<<event.imbalance1<<" | Imbalance2: "<<event.imbalance2<<"\n";
+        <<"| Imbalance1: "<<event.imbalance1<<" | Imbalance2: "<<event.imbalance2<<"\n"
+        <<"| Aggregate Imbalance: "<<event.aggImbalance<<"\n";
     }
 }

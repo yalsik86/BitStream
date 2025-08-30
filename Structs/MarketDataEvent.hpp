@@ -23,4 +23,6 @@ struct MarketDataEvent {
     // top-of-book imbalance
     double imbalance1 = 0.0;
     double imbalance2 = 0.0;
+    // aggregate imbalance
+    double aggImbalance = 0.0;
 };
