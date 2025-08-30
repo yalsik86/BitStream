@@ -49,13 +49,11 @@ inline void AggregatorEngine::updateGlobalBBO(const ExchangeUpdate& update) {
     }
 }
 
-void AggregatorEngine::ingestRaw(const std::string& exchange, const std::string& rawData) {
-    std::cout<<exchange<<" "<<rawData<<"\n";
+inline double AggregatorEngine::computeImbalance(double bidSize, double askSize) {
+    return (bidSize + askSize != 0.0) ? (bidSize - askSize) / (bidSize + askSize) : 0.0;
 }
 
-void AggregatorEngine::ingestUpdate(const ExchangeUpdate& update) {
-    std::unique_lock<std::mutex> lock(ingestion_mtx);
-
+inline void AggregatorEngine::updateNetImbalance(const ExchangeUpdate& update) {
     auto it = snapshots.find(update.exchange);
     if(it != snapshots.end()) {
         netImbalance.totalBid -= it->second.bidSize;
@@ -65,21 +63,24 @@ void AggregatorEngine::ingestUpdate(const ExchangeUpdate& update) {
     netImbalance.totalBid += update.bidSize;
     netImbalance.totalAsk += update.askSize;
 
-    if(netImbalance.totalBid + netImbalance.totalAsk != 0.0) {
-        netImbalance.value = (netImbalance.totalBid - netImbalance.totalAsk) / (netImbalance.totalBid + netImbalance.totalAsk);
-    }
+    netImbalance.value = computeImbalance(netImbalance.totalBid, netImbalance.totalAsk);
+}
 
+void AggregatorEngine::ingestRaw(const std::string& exchange, const std::string& rawData) {
+    std::cout<<exchange<<" "<<rawData<<"\n";
+}
+
+void AggregatorEngine::ingestUpdate(const ExchangeUpdate& update) {
+    std::unique_lock<std::mutex> lock(ingestion_mtx);
+
+    updateNetImbalance(update);
     snapshots[update.exchange] = update;
-
     updateGlobalBBO(update);
 
-    double updateImbalance = 0.0;
-    if(update.bidSize + update.askSize != 0) {
-        updateImbalance = (update.bidSize - update.askSize) / (update.bidSize + update.askSize);
-    }
+    double updateImbalance = computeImbalance(update.bidSize, update.askSize);
     exchangeImbalance[update.exchange] = updateImbalance;
 
-    for(auto& [otherEx, otherUpd]: snapshots) {
+    for(const auto& [otherEx, otherUpd]: snapshots) {
         if(otherEx==update.exchange) continue;
 
         MarketDataEvent event;

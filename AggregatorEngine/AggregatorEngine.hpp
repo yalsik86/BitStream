@@ -26,6 +26,8 @@ class AggregatorEngine {
     inline void updateGlobalBBO(const ExchangeUpdate& update);
 
     std::unordered_map<std::string, double> exchangeImbalance;
+    inline double computeImbalance(double bid, double ask);
+
     NetImbalance netImbalance;
-    inline void updateGlobalImbalance();
+    inline void updateNetImbalance(const ExchangeUpdate& update);
 };
