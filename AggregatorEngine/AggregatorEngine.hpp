@@ -22,20 +22,26 @@ class AggregatorEngine {
     std::vector<std::jthread> threads;
     std::mutex ingestion_mtx;
 
+    // ------ Global BBO Utilities ------
     GlobalBBO globalBBO;
     inline void updateGlobalBBO(const ExchangeUpdate& update);
 
-    std::unordered_map<std::string, double> exchangeImbalance;
+    // ------ Imbalance Utilities ------
+    std::unordered_map<std::string, double> exchangeImbalance; // per-exchange imbalance
     inline double computeImbalance(double bid, double ask);
-
     NetImbalance netImbalance;
     inline void updateNetImbalance(const ExchangeUpdate& update);
 
+    // ------ Mid-Price Utilities ------
     std::unordered_map<std::string, std::pair<double, double>> exchangeMidPrice;
     inline std::pair<double, double> computeMidPrice(const ExchangeUpdate& update);
 
+    // ------ Event Utilities ------
     inline MarketDataEvent createEvent(
         const ExchangeUpdate& update, const ExchangeUpdate& otherUpd,
         double updateImbalance, const std::pair<double, double>& updateMidPrice
     ) const;
+
+    
+    inline void coutEvent(const MarketDataEvent& event);
 };

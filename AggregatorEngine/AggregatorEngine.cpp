@@ -147,19 +147,24 @@ void AggregatorEngine::ingestUpdate(const ExchangeUpdate& update) {
             updateMidPrice
         );
 
-        std::cout << std::fixed << std::setprecision(4)
-        <<"------["<<event.symbol<<"]------\n"
-        <<"["<<event.exchange1<<"] - ["<<event.exchange2<<"]\n"
-        <<"| Spread12: "<<event.spread12<<" | Spread21: "<<event.spread21<<"\n"
-        <<"| Global BBO: \n"
-        <<"    - Best Bid: "<<event.bestBidPrice<<" - Size: "<<event.bestBidSize<<" @ "<<event.bestBidExchange<<"\n"
-        <<"    - Best Ask: "<<event.bestAskPrice<<" - Size: "<<event.bestAskSize<<" @ "<<event.bestAskExchange<<"\n"
-        <<"| Imbalance1: "<<event.imbalance1<<" | Imbalance2: "<<event.imbalance2<<"\n"
-        <<"| Aggregate Imbalance: "<<event.aggImbalance<<"\n"
-        <<"| Mid-Prices:\n"
-        <<"| Simple_Mid1: "<<event.simpleMid1<<" | Simple_Mid2: "<<event.simpleMid2<<"\n"
-        <<"| Weighted_Mid1: "<<event.weightedMid1<<" | Weighted_Mid2: "<<event.weightedMid2<<"\n"
-        <<"    - Simple Divergence: "<<event.simpleDivergence<<"\n"
-        <<"    - Weighted Divergence: "<<event.weightedDivergence<<"\n";
+        coutEvent(event);
     }
+}
+
+
+inline void AggregatorEngine::coutEvent(const MarketDataEvent& event) {
+    std::cout << std::fixed << std::setprecision(4)
+    <<"------["<<event.symbol<<"]------\n"
+    <<"["<<event.exchange1<<"] - ["<<event.exchange2<<"]\n"
+    <<"| Spread12: "<<event.spread12<<" | Spread21: "<<event.spread21<<"\n"
+    <<"| Global BBO: \n"
+    <<"    - Best Bid: "<<event.bestBidPrice<<" - Size: "<<event.bestBidSize<<" @ "<<event.bestBidExchange<<"\n"
+    <<"    - Best Ask: "<<event.bestAskPrice<<" - Size: "<<event.bestAskSize<<" @ "<<event.bestAskExchange<<"\n"
+    <<"| Imbalance1: "<<event.imbalance1<<" | Imbalance2: "<<event.imbalance2<<"\n"
+    <<"| Aggregate Imbalance: "<<event.aggImbalance<<"\n"
+    <<"| Mid-Prices:\n"
+    <<"| Simple_Mid1: "<<event.simpleMid1<<" | Simple_Mid2: "<<event.simpleMid2<<"\n"
+    <<"| Weighted_Mid1: "<<event.weightedMid1<<" | Weighted_Mid2: "<<event.weightedMid2<<"\n"
+    <<"    - Simple Divergence: "<<event.simpleDivergence<<"\n"
+    <<"    - Weighted Divergence: "<<event.weightedDivergence<<"\n";
 }
