@@ -40,12 +40,23 @@ void CoinbaseFeed::receiveUpdates() {
             }
             buffer.consume(buffer.size());
         } catch (const beast::system_error& e) {
-            std::cerr <<"WebSocket read error: "<< e.what() << std::endl;
+            std::cerr <<"[!][Coinbase] WebSocket read error: "<< e.code().message() << std::endl;
             break;
         }
     }
 }
 
+void CoinbaseFeed::run() {
+    while(true) {
+        try {
+            connect();
+            receiveUpdates();
+        } catch (const std::exception &e) {
+            std::cerr<<"[!][Coinbase] Fatal error: "<< e.what() << " - retrying in 2s...\n";
+        }
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+    }
+}
 
 std::optional<ExchangeUpdate> CoinbaseFeed::parseRaw(const std::string& raw) {
     auto j = nlohmann::json::parse(raw, nullptr, false);

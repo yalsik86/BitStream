@@ -9,6 +9,8 @@
 #include <boost/asio.hpp>
 #include <iostream>
 #include <optional>
+#include <thread>
+#include <chrono>
 
 namespace beast = boost::beast;
 namespace http = beast::http;
@@ -21,6 +23,7 @@ class IExchangeFeed {
   public:
     virtual ~IExchangeFeed() = default;
 
+    virtual void run() = 0;
     virtual void connect() = 0;
     virtual void receiveUpdates() = 0;
     virtual std::optional<ExchangeUpdate> parseRaw(const std::string&) = 0;

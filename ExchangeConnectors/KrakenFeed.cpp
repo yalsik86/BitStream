@@ -42,9 +42,21 @@ void KrakenFeed::receiveUpdates() {
             }
             buffer.consume(buffer.size());
         } catch (const beast::system_error& e) {
-            std::cerr <<"WebSocket read error: "<< e.what() << std::endl;
+            std::cerr <<"[!][Kraken] WebSocket read error: "<< e.code().message() << std::endl;
             break;
         }
+    }
+}
+
+void KrakenFeed::run() {
+    while(true) {
+        try {
+            connect();
+            receiveUpdates();
+        } catch (const std::exception &e) {
+            std::cerr<<"[!][Kraken] Fatal error: "<< e.what() << " - retrying in 2s...\n";
+        }
+        std::this_thread::sleep_for(std::chrono::seconds(2));
     }
 }
 

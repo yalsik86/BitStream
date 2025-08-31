@@ -39,9 +39,21 @@ void BinanceFeed::receiveUpdates() {
             }
             buffer.consume(buffer.size());
         } catch (const beast::system_error& e) {
-            std::cerr <<"WebSocket read error: "<< e.what() << std::endl;
+            std::cerr <<"[!][Binance] WebSocket read error: "<< e.code().message() << "\n";
             break;
         }
+    }
+}
+
+void BinanceFeed::run() {
+    while(true) {
+        try {
+            connect();
+            receiveUpdates();
+        } catch (const std::exception &e) {
+            std::cerr<<"[!][Binance] Fatal error: "<< e.what() << " - retrying in 2s...\n";
+        }
+        std::this_thread::sleep_for(std::chrono::seconds(2));
     }
 }
 

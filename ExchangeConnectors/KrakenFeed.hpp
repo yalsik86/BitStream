@@ -5,6 +5,7 @@
 class KrakenFeed : public IExchangeFeed {
   public:
     KrakenFeed(AggregatorEngine& engine);
+    void run() override;
     void connect() override;
     void receiveUpdates() override;
     std::optional<ExchangeUpdate> parseRaw(const std::string&) override;
