@@ -81,6 +81,50 @@ void AggregatorEngine::ingestRaw(const std::string& exchange, const std::string&
     std::cout<<exchange<<" "<<rawData<<"\n";
 }
 
+inline MarketDataEvent AggregatorEngine::createEvent(
+    const ExchangeUpdate& update, const ExchangeUpdate& otherUpd,
+    double updateImbalance, const std::pair<double, double>& updateMidPrice
+) const {
+    MarketDataEvent event;
+    event.symbol = update.symbol;
+
+    event.exchange1 = update.exchange;
+    event.exchange2 = otherUpd.exchange;
+
+    // Cross-exchange spread
+    event.spread12 = otherUpd.askPrice - update.bidPrice;
+    event.spread21 = update.askPrice - otherUpd.bidPrice;
+
+    // Global BBO
+    event.bestBidExchange = globalBBO.bestBidEx;
+    event.bestBidPrice = globalBBO.bestBid;
+    event.bestBidSize = globalBBO.bestBidSize;
+
+    event.bestAskExchange = globalBBO.bestAskEx;
+    event.bestAskPrice = globalBBO.bestAsk;
+    event.bestAskSize = globalBBO.bestAskSize;
+
+    // Top-of-Book Imbalance
+    event.imbalance1 = updateImbalance;
+    event.imbalance2 = exchangeImbalance.at(otherUpd.exchange);
+
+    event.aggImbalance = netImbalance.value;
+
+    // Mid-Price, Divergence
+    const auto& [updateSimpleMid, updateWeightedMid] = updateMidPrice;
+    const auto& [otherSimpleMid, otherWeightedMid] = exchangeMidPrice.at(otherUpd.exchange);
+    event.simpleMid1 = updateSimpleMid;
+    event.simpleMid2 = otherSimpleMid;
+
+    event.weightedMid1 = updateWeightedMid;
+    event.weightedMid2 = otherWeightedMid;
+    // arbitrage indication
+    event.simpleDivergence = std::abs(event.simpleMid1 - event.simpleMid2);
+    event.weightedDivergence = std::abs(event.weightedMid1 - event.weightedMid2);
+
+    return event;
+}
+
 void AggregatorEngine::ingestUpdate(const ExchangeUpdate& update) {
     std::unique_lock<std::mutex> lock(ingestion_mtx);
 
@@ -91,48 +135,17 @@ void AggregatorEngine::ingestUpdate(const ExchangeUpdate& update) {
     double updateImbalance = computeImbalance(update.bidSize, update.askSize);
     exchangeImbalance[update.exchange] = updateImbalance;
 
-    const auto& [updateSimpleMid, updateWeightedMid] = computeMidPrice(update);
-    exchangeMidPrice[update.exchange] = { updateSimpleMid, updateWeightedMid };
+    auto updateMidPrice = computeMidPrice(update);
+    exchangeMidPrice[update.exchange] = updateMidPrice;
 
     for(const auto& [otherEx, otherUpd]: snapshots) {
         if(otherEx==update.exchange) continue;
 
-        MarketDataEvent event;
-        event.symbol = update.symbol;
-
-        event.exchange1 = update.exchange;
-        event.exchange2 = otherEx;
-        
-        // Cross-exchange spread
-        event.spread12 = otherUpd.askPrice - update.bidPrice;
-        event.spread21 = update.askPrice - otherUpd.bidPrice;
-
-        // Global BBO
-        event.bestBidExchange = globalBBO.bestBidEx;
-        event.bestBidPrice = globalBBO.bestBid;
-        event.bestBidSize = globalBBO.bestBidSize;
-
-        event.bestAskExchange = globalBBO.bestAskEx;
-        event.bestAskPrice = globalBBO.bestAsk;
-        event.bestAskSize = globalBBO.bestAskSize;
-
-        // Top-of-Book Imbalance
-        event.imbalance1 = updateImbalance;
-        event.imbalance2 = exchangeImbalance[otherEx];
-
-        event.aggImbalance = netImbalance.value;
-
-        // Mid-Price, Divergence
-        const auto& [otherSimpleMid, otherWeightedMid] = exchangeMidPrice[otherEx];
-        event.simpleMid1 = updateSimpleMid;
-        event.simpleMid2 = otherSimpleMid;
-
-        event.weightedMid1 = updateWeightedMid;
-        event.weightedMid2 = otherWeightedMid;
-        
-        // arbitrage indication
-        event.simpleDivergence = std::abs(event.simpleMid1 - event.simpleMid2);
-        event.weightedDivergence = std::abs(event.weightedMid1 - event.weightedMid2);
+        MarketDataEvent event = createEvent(
+            update, otherUpd,
+            updateImbalance, 
+            updateMidPrice
+        );
 
         std::cout << std::fixed << std::setprecision(4)
         <<"------["<<event.symbol<<"]------\n"

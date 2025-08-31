@@ -33,4 +33,9 @@ class AggregatorEngine {
 
     std::unordered_map<std::string, std::pair<double, double>> exchangeMidPrice;
     inline std::pair<double, double> computeMidPrice(const ExchangeUpdate& update);
+
+    inline MarketDataEvent createEvent(
+        const ExchangeUpdate& update, const ExchangeUpdate& otherUpd,
+        double updateImbalance, const std::pair<double, double>& updateMidPrice
+    ) const;
 };
