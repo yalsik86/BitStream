@@ -1,18 +1,20 @@
 #include "BinanceFeed.hpp"
 
 BinanceFeed::BinanceFeed(AggregatorEngine& engine) : 
-    ssl_ctx(ssl::context::tls_client), ws(ioc, ssl_ctx), engine(engine) {
+    ssl_ctx(ssl::context::tls_client), engine(engine) {
     ssl_ctx.set_default_verify_paths();
 }
 
 void BinanceFeed::connect() {
+    ws.emplace(ioc, ssl_ctx);
+
     boost::beast::flat_buffer buffer;
     tcp::resolver resolver(ioc);
     auto const results = resolver.resolve("stream.binance.com", "9443");
 
-    net::connect(ws.next_layer().next_layer(), results);
-    ws.next_layer().handshake(ssl::stream_base::client);
-    ws.handshake("stream.binance.com", "/ws");
+    net::connect(ws->next_layer().next_layer(), results);
+    ws->next_layer().handshake(ssl::stream_base::client);
+    ws->handshake("stream.binance.com", "/ws");
     std::cout <<"[+][Binance] Connected and handshake complete\n";
 
     nlohmann::json msg = {
@@ -20,7 +22,7 @@ void BinanceFeed::connect() {
         {"params", {"btcusdt@ticker"}},
         {"id", 1}
     };
-    ws.write(net::buffer(msg.dump()));
+    ws->write(net::buffer(msg.dump()));
 }
 
 void BinanceFeed::receiveUpdates() {
@@ -28,7 +30,7 @@ void BinanceFeed::receiveUpdates() {
 
     while(true) {
         try {
-            ws.read(buffer);
+            ws->read(buffer);
             std::string raw = beast::buffers_to_string(buffer.data());
 
             auto update = parseRaw(raw);

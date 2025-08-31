@@ -1,19 +1,21 @@
 #include "CryptoComFeed.hpp"
 
 CryptoComFeed::CryptoComFeed(AggregatorEngine& engine) : 
-    ssl_ctx(ssl::context::tls_client), ws(ioc, ssl_ctx), engine(engine) {
+    ssl_ctx(ssl::context::tls_client), engine(engine) {
     ssl_ctx.set_default_verify_paths();
 }
 
 void CryptoComFeed::connect() {
+    ws.emplace(ioc, ssl_ctx); // fresh websocket
+    
     boost::beast::flat_buffer buffer;
     tcp::resolver resolver(ioc);
     auto const results = resolver.resolve("stream.crypto.com", "443");
 
-    net::connect(ws.next_layer().next_layer(), results);
-    SSL_set_tlsext_host_name(ws.next_layer().native_handle(), "stream.crypto.com");
-    ws.next_layer().handshake(ssl::stream_base::client);
-    ws.handshake("stream.crypto.com", "/v2/market");
+    net::connect(ws->next_layer().next_layer(), results);
+    SSL_set_tlsext_host_name(ws->next_layer().native_handle(), "stream.crypto.com");
+    ws->next_layer().handshake(ssl::stream_base::client);
+    ws->handshake("stream.crypto.com", "/v2/market");
     std::cout <<"[+][Crypto.com] Connected and handshake complete\n";
 
     nlohmann::json msg = {
@@ -22,7 +24,7 @@ void CryptoComFeed::connect() {
             {"channels", {"ticker.BTC_USDT"}}
         }}
     };
-    ws.write(net::buffer(msg.dump()));
+    ws->write(net::buffer(msg.dump()));
 }
 
 void CryptoComFeed::receiveUpdates() {
@@ -30,7 +32,7 @@ void CryptoComFeed::receiveUpdates() {
 
     while(true) {
         try {
-            ws.read(buffer);
+            ws->read(buffer);
             std::string raw = beast::buffers_to_string(buffer.data());
             
             auto update = parseRaw(raw);

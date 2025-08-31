@@ -1,19 +1,21 @@
 #include "KrakenFeed.hpp"
 
 KrakenFeed::KrakenFeed(AggregatorEngine& engine) : 
-    ssl_ctx(ssl::context::tls_client), ws(ioc, ssl_ctx), engine(engine) {
+    ssl_ctx(ssl::context::tls_client), engine(engine) {
     ssl_ctx.set_default_verify_paths();
 }
 
 void KrakenFeed::connect() {
+    ws.emplace(ioc, ssl_ctx);
+
     boost::beast::flat_buffer buffer;
     tcp::resolver resolver(ioc);
     auto const results = resolver.resolve("ws.kraken.com", "443");
 
-    net::connect(ws.next_layer().next_layer(), results);
-    SSL_set_tlsext_host_name(ws.next_layer().native_handle(), "ws.kraken.com");
-    ws.next_layer().handshake(ssl::stream_base::client);
-    ws.handshake("ws.kraken.com", "/v2");
+    net::connect(ws->next_layer().next_layer(), results);
+    SSL_set_tlsext_host_name(ws->next_layer().native_handle(), "ws.kraken.com");
+    ws->next_layer().handshake(ssl::stream_base::client);
+    ws->handshake("ws.kraken.com", "/v2");
     std::cout <<"[+][Kraken] Connected and handshake complete\n";
 
     nlohmann::json msg = {
@@ -23,7 +25,7 @@ void KrakenFeed::connect() {
             {"symbol", {"BTC/USD"}}
         }}
     };
-    ws.write(net::buffer(msg.dump()));
+    ws->write(net::buffer(msg.dump()));
 }
 
 void KrakenFeed::receiveUpdates() {
@@ -31,7 +33,7 @@ void KrakenFeed::receiveUpdates() {
 
     while(true) {
         try {
-            ws.read(buffer);
+            ws->read(buffer);
             std::string raw = beast::buffers_to_string(buffer.data());
             
             auto update = parseRaw(raw);

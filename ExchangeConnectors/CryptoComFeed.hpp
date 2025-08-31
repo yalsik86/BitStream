@@ -13,5 +13,5 @@ class CryptoComFeed : public IExchangeFeed {
     AggregatorEngine& engine;
     net::io_context ioc;
     ssl::context ssl_ctx;
-    websocket::stream<ssl::stream<tcp::socket>> ws;
+    std::optional<websocket::stream<ssl::stream<tcp::socket>>> ws;
 };
