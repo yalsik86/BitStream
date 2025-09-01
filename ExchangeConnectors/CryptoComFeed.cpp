@@ -1,7 +1,7 @@
 #include "CryptoComFeed.hpp"
 
 CryptoComFeed::CryptoComFeed(AggregatorEngine& engine) : 
-    ssl_ctx(ssl::context::tls_client), engine(engine) {
+    engine(engine), ssl_ctx(ssl::context::tls_client) {
     ssl_ctx.set_default_verify_paths();
 }
 
@@ -25,7 +25,7 @@ void CryptoComFeed::connect() {
         }}
     };
     ws->write(net::buffer(msg.dump()));
-    spdlog::debug("[Crypto.com] Subscription message sent");
+    spdlog::info("[Crypto.com] Subscription message sent");
 }
 
 void CryptoComFeed::receiveUpdates() {

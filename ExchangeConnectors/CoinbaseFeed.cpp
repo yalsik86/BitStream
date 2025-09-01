@@ -1,7 +1,7 @@
 #include "CoinbaseFeed.hpp"
 
 CoinbaseFeed::CoinbaseFeed(AggregatorEngine& engine) : 
-    ssl_ctx(ssl::context::tls_client), engine(engine) {
+    engine(engine), ssl_ctx(ssl::context::tls_client) {
     ssl_ctx.set_default_verify_paths();
 }
 
@@ -24,7 +24,7 @@ void CoinbaseFeed::connect() {
         {"channels", {"ticker", "heartbeat"}} 
     };
     ws->write(net::buffer(msg.dump()));
-    spdlog::debug("[Coinbase] Subscription message sent");
+    spdlog::info("[Coinbase] Subscription message sent");
 }
 
 void CoinbaseFeed::receiveUpdates() {

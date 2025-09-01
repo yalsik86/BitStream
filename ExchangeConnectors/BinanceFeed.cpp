@@ -1,7 +1,7 @@
 #include "BinanceFeed.hpp"
 
 BinanceFeed::BinanceFeed(AggregatorEngine& engine) : 
-    ssl_ctx(ssl::context::tls_client), engine(engine) {
+    engine(engine), ssl_ctx(ssl::context::tls_client) {
     ssl_ctx.set_default_verify_paths();
 }
 
@@ -23,7 +23,7 @@ void BinanceFeed::connect() {
         {"id", 1}
     };
     ws->write(net::buffer(msg.dump()));
-    spdlog::debug("[Binance] Subscription message sent");
+    spdlog::info("[Binance] Subscription message sent");
 }
 
 void BinanceFeed::receiveUpdates() {
