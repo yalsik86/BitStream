@@ -16,7 +16,7 @@ void KrakenFeed::connect() {
     SSL_set_tlsext_host_name(ws->next_layer().native_handle(), "ws.kraken.com");
     ws->next_layer().handshake(ssl::stream_base::client);
     ws->handshake("ws.kraken.com", "/v2");
-    std::cout <<"[+][Kraken] Connected and handshake complete\n";
+    spdlog::info("[Kraken] Connected and handshake complete");
 
     nlohmann::json msg = {
         {"method", "subscribe"},
@@ -26,6 +26,7 @@ void KrakenFeed::connect() {
         }}
     };
     ws->write(net::buffer(msg.dump()));
+    spdlog::debug("[Kraken] Subscription message sent");
 }
 
 void KrakenFeed::receiveUpdates() {
@@ -42,7 +43,7 @@ void KrakenFeed::receiveUpdates() {
             }
             buffer.consume(buffer.size());
         } catch (const beast::system_error& e) {
-            std::cerr <<"[!][Kraken] WebSocket read error: "<< e.code().message() << std::endl;
+            spdlog::warn("[Kraken] WebSocket read error: {}", e.code().message());
             break;
         }
     }
@@ -54,7 +55,7 @@ void KrakenFeed::run() {
             connect();
             receiveUpdates();
         } catch (const std::exception &e) {
-            std::cerr<<"[!][Kraken] Fatal error: "<< e.what() << " - retrying in 2s...\n";
+            spdlog::error("[Kraken] Fatal error: {} - retrying in 2s...", e.what());
         }
         std::this_thread::sleep_for(std::chrono::seconds(2));
     }

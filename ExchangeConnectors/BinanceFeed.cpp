@@ -15,7 +15,7 @@ void BinanceFeed::connect() {
     net::connect(ws->next_layer().next_layer(), results);
     ws->next_layer().handshake(ssl::stream_base::client);
     ws->handshake("stream.binance.com", "/ws");
-    std::cout <<"[+][Binance] Connected and handshake complete\n";
+    spdlog::info("[Binance] Connected and handshake complete");
 
     nlohmann::json msg = {
         {"method", "SUBSCRIBE"},
@@ -23,6 +23,7 @@ void BinanceFeed::connect() {
         {"id", 1}
     };
     ws->write(net::buffer(msg.dump()));
+    spdlog::debug("[Binance] Subscription message sent");
 }
 
 void BinanceFeed::receiveUpdates() {
@@ -39,7 +40,7 @@ void BinanceFeed::receiveUpdates() {
             }
             buffer.consume(buffer.size());
         } catch (const beast::system_error& e) {
-            std::cerr <<"[!][Binance] WebSocket read error: "<< e.code().message() << "\n";
+            spdlog::warn("[Binance] WebSocket read error: {}", e.code().message());
             break;
         }
     }
@@ -51,7 +52,7 @@ void BinanceFeed::run() {
             connect();
             receiveUpdates();
         } catch (const std::exception &e) {
-            std::cerr<<"[!][Binance] Fatal error: "<< e.what() << " - retrying in 2s...\n";
+            spdlog::error("[Binance] Fatal error: {} - retrying in 2s...", e.what());
         }
         std::this_thread::sleep_for(std::chrono::seconds(2));
     }

@@ -3,6 +3,7 @@
 #include "../Structs/ExchangeUpdate.hpp"
 
 #include <nlohmann/json.hpp>
+#include <spdlog/spdlog.h>
 #include <boost/beast/ssl.hpp>
 #include <boost/asio/ssl.hpp>
 #include <boost/beast.hpp>

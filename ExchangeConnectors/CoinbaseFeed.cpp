@@ -16,7 +16,7 @@ void CoinbaseFeed::connect() {
     SSL_set_tlsext_host_name(ws->next_layer().native_handle(), "ws-feed.exchange.coinbase.com");
     ws->next_layer().handshake(ssl::stream_base::client);
     ws->handshake("ws-feed.exchange.coinbase.com", "/");
-    std::cout <<"[+][Coinbase] Connected and handshake complete\n";
+    spdlog::info("[Coinbase] Connected and handshake complete");
 
     nlohmann::json msg = {
         {"type", "subscribe"},
@@ -24,6 +24,7 @@ void CoinbaseFeed::connect() {
         {"channels", {"ticker", "heartbeat"}} 
     };
     ws->write(net::buffer(msg.dump()));
+    spdlog::debug("[Coinbase] Subscription message sent");
 }
 
 void CoinbaseFeed::receiveUpdates() {
@@ -40,7 +41,7 @@ void CoinbaseFeed::receiveUpdates() {
             }
             buffer.consume(buffer.size());
         } catch (const beast::system_error& e) {
-            std::cerr <<"[!][Coinbase] WebSocket read error: "<< e.code().message() << std::endl;
+            spdlog::warn("[Coinbase] WebSocket read error: {}", e.code().message());
             break;
         }
     }
@@ -52,7 +53,7 @@ void CoinbaseFeed::run() {
             connect();
             receiveUpdates();
         } catch (const std::exception &e) {
-            std::cerr<<"[!][Coinbase] Fatal error: "<< e.what() << " - retrying in 2s...\n";
+            spdlog::error("[Coinbase] Fatal error: {} - retrying in 2s...", e.what());
         }
         std::this_thread::sleep_for(std::chrono::seconds(2));
     }

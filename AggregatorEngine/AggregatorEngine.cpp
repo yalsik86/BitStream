@@ -146,7 +146,7 @@ void AggregatorEngine::ingestUpdate(const ExchangeUpdate& update) {
             updateMidPrice
         );
 
-        coutEvent(event);
+        // coutEvent(event);
     }
 }
 
