@@ -145,6 +145,7 @@ void AggregatorEngine::ingestUpdate(const ExchangeUpdate& update) {
             updateImbalance, 
             updateMidPrice
         );
+        event.sequence = seq++;
 
         coutEvent(event);
     }
@@ -158,6 +159,7 @@ void AggregatorEngine::assignString(std::array<char, 16>& arr, const std::string
 inline void AggregatorEngine::coutEvent(const MarketDataEvent& event) {
     std::cout << std::fixed << std::setprecision(4)
     <<"------["<<event.symbol.data()<<"]------\n"
+    <<"Sequence Number: "<<event.sequence<<"\n"
     <<"["<<event.exchange1.data()<<"] - ["<<event.exchange2.data()<<"]\n"
     <<"| Spread12: "<<event.spread12<<" | Spread21: "<<event.spread21<<"\n"
     <<"| Global BBO: \n"

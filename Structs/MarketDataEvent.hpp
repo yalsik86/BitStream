@@ -1,7 +1,10 @@
 #pragma once
 #include <array>
+#include <cstdint>
 
 struct MarketDataEvent {
+    uint32_t sequence = 0;
+    
     std::array<char, 16> symbol;
 
     // cross-exchange spreads

@@ -6,6 +6,7 @@
 #include "../Structs/GlobalBBO.hpp"
 #include <unordered_map>
 #include <memory>
+#include <atomic>
 #include <mutex>
 #include <thread>
 
@@ -17,6 +18,7 @@ class AggregatorEngine {
     void ingestUpdate(const ExchangeUpdate& update);
 
   private:
+    uint32_t seq = 0;
     std::unordered_map<std::string, ExchangeUpdate> snapshots; // latest updates per-exchange
     std::vector<std::unique_ptr<IExchangeFeed>> connectors;
     std::vector<std::jthread> threads;
