@@ -85,21 +85,21 @@ inline MarketDataEvent AggregatorEngine::createEvent(
     double updateImbalance, const std::pair<double, double>& updateMidPrice
 ) const {
     MarketDataEvent event;
-    event.symbol = update.symbol;
+    assignString(event.symbol, update.symbol);
 
-    event.exchange1 = update.exchange;
-    event.exchange2 = otherUpd.exchange;
+    assignString(event.exchange1, update.exchange);
+    assignString(event.exchange2, otherUpd.exchange);
 
     // Cross-exchange spread
     event.spread12 = otherUpd.askPrice - update.bidPrice;
     event.spread21 = update.askPrice - otherUpd.bidPrice;
 
     // Global BBO
-    event.bestBidExchange = globalBBO.bestBidEx;
+    assignString(event.bestBidExchange, globalBBO.bestBidEx);
     event.bestBidPrice = globalBBO.bestBid;
     event.bestBidSize = globalBBO.bestBidSize;
 
-    event.bestAskExchange = globalBBO.bestAskEx;
+    assignString(event.bestAskExchange, globalBBO.bestAskEx);
     event.bestAskPrice = globalBBO.bestAsk;
     event.bestAskSize = globalBBO.bestAskSize;
 
@@ -150,15 +150,19 @@ void AggregatorEngine::ingestUpdate(const ExchangeUpdate& update) {
     }
 }
 
+void AggregatorEngine::assignString(std::array<char, 16>& arr, const std::string& src) const {
+    std::memset(arr.data(), 0, arr.size());
+    std::strncpy(arr.data(), src.c_str(), arr.size() - 1);
+}
 
 inline void AggregatorEngine::coutEvent(const MarketDataEvent& event) {
     std::cout << std::fixed << std::setprecision(4)
-    <<"------["<<event.symbol<<"]------\n"
-    <<"["<<event.exchange1<<"] - ["<<event.exchange2<<"]\n"
+    <<"------["<<event.symbol.data()<<"]------\n"
+    <<"["<<event.exchange1.data()<<"] - ["<<event.exchange2.data()<<"]\n"
     <<"| Spread12: "<<event.spread12<<" | Spread21: "<<event.spread21<<"\n"
     <<"| Global BBO: \n"
-    <<"    - Best Bid: "<<event.bestBidPrice<<" - Size: "<<event.bestBidSize<<" @ "<<event.bestBidExchange<<"\n"
-    <<"    - Best Ask: "<<event.bestAskPrice<<" - Size: "<<event.bestAskSize<<" @ "<<event.bestAskExchange<<"\n"
+    <<"    - Best Bid: "<<event.bestBidPrice<<" - Size: "<<event.bestBidSize<<" @ "<<event.bestBidExchange.data()<<"\n"
+    <<"    - Best Ask: "<<event.bestAskPrice<<" - Size: "<<event.bestAskSize<<" @ "<<event.bestAskExchange.data()<<"\n"
     <<"| Imbalance1: "<<event.imbalance1<<" | Imbalance2: "<<event.imbalance2<<"\n"
     <<"| Aggregate Imbalance: "<<event.aggImbalance<<"\n"
     <<"| Mid-Prices:\n"

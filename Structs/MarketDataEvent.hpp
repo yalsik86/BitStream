@@ -1,12 +1,12 @@
 #pragma once
-#include <string>
+#include <array>
 
 struct MarketDataEvent {
-    std::string symbol;
+    std::array<char, 16> symbol;
 
     // cross-exchange spreads
-    std::string exchange1;
-    std::string exchange2;
+    std::array<char, 16> exchange1;
+    std::array<char, 16> exchange2;
     
     double spread12 = 0.0;
     double spread21 = 0.0;
@@ -14,11 +14,11 @@ struct MarketDataEvent {
     // global BBO
     double bestBidPrice = 0.0;
     double bestBidSize  = 0.0;
-    std::string bestBidExchange;
+    std::array<char, 16> bestBidExchange;
 
     double bestAskPrice = 0.0;
     double bestAskSize  = 0.0;
-    std::string bestAskExchange;
+    std::array<char, 16> bestAskExchange;
 
     // top-of-book imbalance
     double imbalance1 = 0.0;

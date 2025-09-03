@@ -42,6 +42,7 @@ class AggregatorEngine {
         double updateImbalance, const std::pair<double, double>& updateMidPrice
     ) const;
 
+    inline void assignString(std::array<char, 16>& arr, const std::string& src) const;
     
     inline void coutEvent(const MarketDataEvent& event);
 };
