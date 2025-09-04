@@ -199,6 +199,7 @@ void AggregatorEngine::assignString(std::array<char, 16>& arr, const std::string
 
 inline void AggregatorEngine::coutEncoded(const std::vector<uint8_t>& buffer) {
     std::cout << std::dec << "------------------\n";
+    std::cout << std::dec << "Buffer size: " << buffer.size() << " bytes\n";
     for(auto &b : buffer) {
         std::cout << std::hex << std::setw(2) << std::setfill('0') 
         << static_cast<int>(b) << " ";
