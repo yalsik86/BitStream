@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+message MarketDataEventProto {
+    fixed32 sequence = 1;
+
+    bytes symbol = 2;
+    bytes exchange1 = 3;
+    bytes exchange2 = 4;
+
+    double spread12 = 5;
+    double spread21 = 6;
+
+    double bestBidPrice = 7;
+    double bestBidSize  = 8;
+    bytes  bestBidExchange = 9;
+
+    double bestAskPrice = 10;
+    double bestAskSize  = 11;
+    bytes  bestAskExchange = 12;
+
+    double imbalance1 = 13;
+    double imbalance2 = 14;
+    double aggImbalance = 15;
+
+    double simpleMid1 = 16;
+    double simpleMid2 = 17;
+    double simpleDivergence = 18;
+
+    double weightedMid1 = 19;
+    double weightedMid2 = 20;
+    double weightedDivergence = 21;
+}

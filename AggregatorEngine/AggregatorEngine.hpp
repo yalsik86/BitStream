@@ -1,4 +1,5 @@
 #pragma once
+#include "../Protocol/market_data.pb.h"
 #include "../ExchangeConnectors/IExchangeFeed.hpp"
 #include "../Structs/MarketDataEvent.hpp"
 #include "../Structs/ExchangeUpdate.hpp"
@@ -43,6 +44,9 @@ class AggregatorEngine {
         const ExchangeUpdate& update, const ExchangeUpdate& otherUpd,
         double updateImbalance, const std::pair<double, double>& updateMidPrice
     ) const;
+
+    // ------ Serialization ------
+    std::vector<uint8_t> serialize(const MarketDataEvent& event);
 
     inline void assignString(std::array<char, 16>& arr, const std::string& src) const;
     
