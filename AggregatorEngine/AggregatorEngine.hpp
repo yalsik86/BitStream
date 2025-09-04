@@ -46,9 +46,11 @@ class AggregatorEngine {
     ) const;
 
     // ------ Serialization ------
-    std::vector<uint8_t> serialize(const MarketDataEvent& event);
+    inline std::vector<uint8_t> serialize(const MarketDataEvent& event);
 
     inline void assignString(std::array<char, 16>& arr, const std::string& src) const;
     
+    // ------ cout methods ------
+    inline void coutEncoded(const std::vector<uint8_t>& buffer);
     inline void coutEvent(const MarketDataEvent& event);
 };

@@ -149,10 +149,11 @@ void AggregatorEngine::ingestUpdate(const ExchangeUpdate& update) {
 
         // coutEvent(event);
         auto buffer = serialize(event);
+        coutEncoded(buffer);
     }
 }
 
-std::vector<uint8_t> serialize(const MarketDataEvent& event) {
+inline std::vector<uint8_t> AggregatorEngine::serialize(const MarketDataEvent& event) {
     MarketDataEventProto msg;
 
     msg.set_sequence(event.sequence);
@@ -185,7 +186,7 @@ std::vector<uint8_t> serialize(const MarketDataEvent& event) {
     size_t size = msg.ByteSizeLong();
     std::vector<uint8_t> buffer(size);
 
-    if (!msg.SerializeToArray(buffer.data(), buffer.size())) {
+    if(!msg.SerializeToArray(buffer.data(), buffer.size())) {
         throw std::runtime_error("Serialization failed");
     }
     return buffer;
@@ -194,6 +195,15 @@ std::vector<uint8_t> serialize(const MarketDataEvent& event) {
 void AggregatorEngine::assignString(std::array<char, 16>& arr, const std::string& src) const {
     std::memset(arr.data(), 0, arr.size());
     std::strncpy(arr.data(), src.c_str(), arr.size() - 1);
+}
+
+inline void AggregatorEngine::coutEncoded(const std::vector<uint8_t>& buffer) {
+    std::cout << std::dec << "------------------\n";
+    for(auto &b : buffer) {
+        std::cout << std::hex << std::setw(2) << std::setfill('0') 
+        << static_cast<int>(b) << " ";
+    }
+    std::cout << std::dec << "\n------------------\n";
 }
 
 inline void AggregatorEngine::coutEvent(const MarketDataEvent& event) {
