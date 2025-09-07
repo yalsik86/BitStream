@@ -4,7 +4,7 @@ project(BitStream)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# Optimize like g++ -O1
+# Optimization flag -O1
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O1")
 
 # Sources
@@ -15,6 +15,7 @@ set(SOURCES
     ExchangeConnectors/KrakenFeed.cpp
     ExchangeConnectors/CryptoComFeed.cpp
     AggregatorEngine/AggregatorEngine.cpp
+    MarketDataRouter/MarketDataRouter.cpp
     Protocol/market_data.pb.cc
 )
 
@@ -32,10 +33,10 @@ include_directories(
 )
 
 # Create executable
-add_executable(enginetest ${SOURCES})
+add_executable(routertest ${SOURCES})
 
 # Link libraries
-target_link_libraries(enginetest
+target_link_libraries(routertest
     ${Protobuf_LIBRARIES}
     ${OPENSSL_LIBRARIES}
     fmt::fmt

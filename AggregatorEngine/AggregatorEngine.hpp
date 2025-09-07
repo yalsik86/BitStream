@@ -1,6 +1,7 @@
 #pragma once
 #include "../Protocol/market_data.pb.h"
 #include "../ExchangeConnectors/IExchangeFeed.hpp"
+#include "../MarketDataRouter/MarketDataRouter.hpp"
 #include "../Structs/MarketDataEvent.hpp"
 #include "../Structs/ExchangeUpdate.hpp"
 #include "../Structs/NetImbalance.hpp"
@@ -13,12 +14,15 @@
 
 class AggregatorEngine {
   public:
+    AggregatorEngine(MarketDataRouter& router);
     void addConnector(std::unique_ptr<IExchangeFeed> conn);
     void start();
     void ingestRaw(const std::string& exchange, const std::string& rawData);
     void ingestUpdate(const ExchangeUpdate& update);
 
   private:
+    MarketDataRouter& router;
+
     uint32_t seq = 0;
     std::unordered_map<std::string, ExchangeUpdate> snapshots; // latest updates per-exchange
     std::vector<std::unique_ptr<IExchangeFeed>> connectors;
@@ -44,13 +48,7 @@ class AggregatorEngine {
         const ExchangeUpdate& update, const ExchangeUpdate& otherUpd,
         double updateImbalance, const std::pair<double, double>& updateMidPrice
     ) const;
-
-    // ------ Serialization ------
-    inline std::vector<uint8_t> serialize(const MarketDataEvent& event);
-
-    inline void assignString(std::array<char, 16>& arr, const std::string& src) const;
     
-    // ------ cout methods ------
-    inline void coutEncoded(const std::vector<uint8_t>& buffer);
+    inline void assignString(std::array<char, 16>& arr, const std::string& src) const;
     inline void coutEvent(const MarketDataEvent& event);
 };

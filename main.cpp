@@ -4,17 +4,11 @@
 #include "ExchangeConnectors/CryptoComFeed.hpp"
 #include "ExchangeConnectors/CryptoComFeed.hpp"
 #include "AggregatorEngine/AggregatorEngine.hpp"
+#include "MarketDataRouter/MarketDataRouter.hpp"
 
 int main() {
-    // CoinbaseFeed feed;
-    // BinanceFeed feed;
-    // KrakenFeed feed;
-    // CryptoComFeed feed;
-
-    // feed.connect();
-    // feed.readLoop();
-
-    AggregatorEngine engine;
+    MarketDataRouter router;
+    AggregatorEngine engine(router);
 
     engine.addConnector(std::make_unique<BinanceFeed>(engine));
     engine.addConnector(std::make_unique<CoinbaseFeed>(engine));
