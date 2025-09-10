@@ -16,6 +16,7 @@ set(SOURCES
     ExchangeConnectors/CryptoComFeed.cpp
     AggregatorEngine/AggregatorEngine.cpp
     MarketDataRouter/MarketDataRouter.cpp
+    MarketDataRouter/MulticastPublisher.cpp
     Protocol/market_data.pb.cc
 )
 

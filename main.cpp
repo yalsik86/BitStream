@@ -5,9 +5,11 @@
 #include "ExchangeConnectors/CryptoComFeed.hpp"
 #include "AggregatorEngine/AggregatorEngine.hpp"
 #include "MarketDataRouter/MarketDataRouter.hpp"
+#include "MarketDataRouter/MulticastPublisher.hpp"
 
 int main() {
-    MarketDataRouter router;
+    MulticastPublisher publisher1;
+    MarketDataRouter router(publisher1);
     AggregatorEngine engine(router);
 
     engine.addConnector(std::make_unique<BinanceFeed>(engine));

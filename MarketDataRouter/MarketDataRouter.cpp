@@ -1,8 +1,12 @@
 #include "MarketDataRouter.hpp"
 
+MarketDataRouter::MarketDataRouter(MulticastPublisher& publisher1) : multicastPublisher(publisher1) {}
+
 void MarketDataRouter::ingestEvent(const MarketDataEvent& event) {
     auto buffer = serialize(event);
-    coutEncoded(buffer);
+
+    multicastPublisher.publish(buffer);
+    // coutEncoded(buffer);
 }
 
 inline std::vector<uint8_t> MarketDataRouter::serialize(const MarketDataEvent& event) {
