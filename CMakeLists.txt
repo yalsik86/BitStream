@@ -34,10 +34,10 @@ include_directories(
 )
 
 # Create executable
-add_executable(routertest ${SOURCES})
+add_executable(publishertest ${SOURCES})
 
 # Link libraries
-target_link_libraries(routertest
+target_link_libraries(publishertest
     ${Protobuf_LIBRARIES}
     ${OPENSSL_LIBRARIES}
     fmt::fmt
