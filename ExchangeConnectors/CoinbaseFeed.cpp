@@ -12,7 +12,7 @@ void CoinbaseFeed::connect() {
     tcp::resolver resolver(ioc);
     auto const results = resolver.resolve("ws-feed.exchange.coinbase.com", "443");
 
-    net::connect(ws->next_layer().next_layer(), results);
+    asio::connect(ws->next_layer().next_layer(), results);
     SSL_set_tlsext_host_name(ws->next_layer().native_handle(), "ws-feed.exchange.coinbase.com");
     ws->next_layer().handshake(ssl::stream_base::client);
     ws->handshake("ws-feed.exchange.coinbase.com", "/");
@@ -23,7 +23,7 @@ void CoinbaseFeed::connect() {
         {"product_ids", {"BTC-USD"}},
         {"channels", {"ticker", "heartbeat"}} 
     };
-    ws->write(net::buffer(msg.dump()));
+    ws->write(asio::buffer(msg.dump()));
     spdlog::info("[Coinbase] Subscription message sent");
 }
 

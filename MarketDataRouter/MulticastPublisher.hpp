@@ -8,8 +8,8 @@
 #include <queue>
 #include <thread>
 
-namespace net = boost::asio;
-using udp = net::ip::udp;
+namespace asio = boost::asio;
+using udp = asio::ip::udp;
 
 class MulticastPublisher {
   public:
@@ -19,7 +19,7 @@ class MulticastPublisher {
     void publish(const std::vector<uint8_t>& buffer);
 
   private:
-    net::io_context ioc;
+    asio::io_context ioc;
     udp::endpoint multicast_endpoint;
     udp::socket socket;
 

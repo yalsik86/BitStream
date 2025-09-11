@@ -12,7 +12,7 @@ void KrakenFeed::connect() {
     tcp::resolver resolver(ioc);
     auto const results = resolver.resolve("ws.kraken.com", "443");
 
-    net::connect(ws->next_layer().next_layer(), results);
+    asio::connect(ws->next_layer().next_layer(), results);
     SSL_set_tlsext_host_name(ws->next_layer().native_handle(), "ws.kraken.com");
     ws->next_layer().handshake(ssl::stream_base::client);
     ws->handshake("ws.kraken.com", "/v2");
@@ -25,7 +25,7 @@ void KrakenFeed::connect() {
             {"symbol", {"BTC/USD"}}
         }}
     };
-    ws->write(net::buffer(msg.dump()));
+    ws->write(asio::buffer(msg.dump()));
     spdlog::info("[Kraken] Subscription message sent");
 }
 

@@ -12,7 +12,7 @@ void BinanceFeed::connect() {
     tcp::resolver resolver(ioc);
     auto const results = resolver.resolve("stream.binance.com", "9443");
 
-    net::connect(ws->next_layer().next_layer(), results);
+    asio::connect(ws->next_layer().next_layer(), results);
     ws->next_layer().handshake(ssl::stream_base::client);
     ws->handshake("stream.binance.com", "/ws");
     spdlog::info("[Binance] Connected and handshake complete");
@@ -22,7 +22,7 @@ void BinanceFeed::connect() {
         {"params", {"btcusdt@ticker"}},
         {"id", 1}
     };
-    ws->write(net::buffer(msg.dump()));
+    ws->write(asio::buffer(msg.dump()));
     spdlog::info("[Binance] Subscription message sent");
 }
 

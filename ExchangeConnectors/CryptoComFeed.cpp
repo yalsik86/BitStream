@@ -12,7 +12,7 @@ void CryptoComFeed::connect() {
     tcp::resolver resolver(ioc);
     auto const results = resolver.resolve("stream.crypto.com", "443");
 
-    net::connect(ws->next_layer().next_layer(), results);
+    asio::connect(ws->next_layer().next_layer(), results);
     SSL_set_tlsext_host_name(ws->next_layer().native_handle(), "stream.crypto.com");
     ws->next_layer().handshake(ssl::stream_base::client);
     ws->handshake("stream.crypto.com", "/v2/market");
@@ -24,7 +24,7 @@ void CryptoComFeed::connect() {
             {"channels", {"ticker.BTC_USDT"}}
         }}
     };
-    ws->write(net::buffer(msg.dump()));
+    ws->write(asio::buffer(msg.dump()));
     spdlog::info("[Crypto.com] Subscription message sent");
 }
 

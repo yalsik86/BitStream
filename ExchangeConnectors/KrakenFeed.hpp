@@ -12,7 +12,7 @@ class KrakenFeed : public IExchangeFeed {
 
   private:
     AggregatorEngine& engine;
-    net::io_context ioc;
+    asio::io_context ioc;
     ssl::context ssl_ctx;
     std::optional<websocket::stream<ssl::stream<tcp::socket>>> ws;
 };

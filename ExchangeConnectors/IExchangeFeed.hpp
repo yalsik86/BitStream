@@ -16,9 +16,9 @@
 namespace beast = boost::beast;
 namespace http = beast::http;
 namespace websocket = beast::websocket;
-namespace net = boost::asio;
-namespace ssl = net::ssl;
-using tcp = net::ip::tcp;
+namespace asio = boost::asio;
+namespace ssl = asio::ssl;
+using tcp = asio::ip::tcp;
 
 class IExchangeFeed {
   public:
