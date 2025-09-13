@@ -29,10 +29,10 @@ void KrakenFeed::connect() {
     spdlog::info("[Kraken] Subscription message sent");
 }
 
-void KrakenFeed::receiveUpdates() {
+void KrakenFeed::receiveUpdates(std::stop_token stoken) {
     beast::flat_buffer buffer;
 
-    while(true) {
+    while(!stoken.stop_requested()) {
         try {
             ws->read(buffer);
             std::string raw = beast::buffers_to_string(buffer.data());
@@ -49,12 +49,13 @@ void KrakenFeed::receiveUpdates() {
     }
 }
 
-void KrakenFeed::run() {
-    while(true) {
+void KrakenFeed::run(std::stop_token stoken) {
+    while(!stoken.stop_requested()) {
         try {
             connect();
-            receiveUpdates();
+            receiveUpdates(stoken);
         } catch (const std::exception &e) {
+            if(stoken.stop_requested()) break;
             spdlog::error("[Kraken] Fatal error: {} - retrying in 2s...", e.what());
         }
         std::this_thread::sleep_for(std::chrono::seconds(2));
@@ -88,4 +89,17 @@ std::optional<ExchangeUpdate> KrakenFeed::parseRaw(const std::string& raw) {
     update.lastPrice = data["last"].get<double>();
 
     return update;
+}
+
+void KrakenFeed::disconnect() {
+    if(ws && ws->is_open()) {
+        beast::error_code ec;
+        ws->close(websocket::close_code::normal, ec);
+        if(ec) {
+            spdlog::warn("[Kraken] Disconnect error: {}", ec.message());
+        } else {
+            spdlog::info("[Kraken] Disconnected cleanly");
+        }
+    }
+    ws.reset();
 }

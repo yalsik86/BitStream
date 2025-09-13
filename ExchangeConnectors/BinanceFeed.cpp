@@ -13,6 +13,7 @@ void BinanceFeed::connect() {
     auto const results = resolver.resolve("stream.binance.com", "9443");
 
     asio::connect(ws->next_layer().next_layer(), results);
+    SSL_set_tlsext_host_name(ws->next_layer().native_handle(), "stream.binance.com");
     ws->next_layer().handshake(ssl::stream_base::client);
     ws->handshake("stream.binance.com", "/ws");
     spdlog::info("[Binance] Connected and handshake complete");
@@ -26,10 +27,10 @@ void BinanceFeed::connect() {
     spdlog::info("[Binance] Subscription message sent");
 }
 
-void BinanceFeed::receiveUpdates() {
+void BinanceFeed::receiveUpdates(std::stop_token stoken) {
     beast::flat_buffer buffer;
 
-    while(true) {
+    while(!stoken.stop_requested()) {
         try {
             ws->read(buffer);
             std::string raw = beast::buffers_to_string(buffer.data());
@@ -46,12 +47,13 @@ void BinanceFeed::receiveUpdates() {
     }
 }
 
-void BinanceFeed::run() {
-    while(true) {
+void BinanceFeed::run(std::stop_token stoken) {
+    while(!stoken.stop_requested()) {
         try {
             connect();
-            receiveUpdates();
+            receiveUpdates(stoken);
         } catch (const std::exception &e) {
+            if(stoken.stop_requested()) break;
             spdlog::error("[Binance] Fatal error: {} - retrying in 2s...", e.what());
         }
         std::this_thread::sleep_for(std::chrono::seconds(2));
@@ -79,4 +81,17 @@ std::optional<ExchangeUpdate> BinanceFeed::parseRaw(const std::string& raw) {
     update.lastPrice = std::stod(j["c"].get<std::string>());
 
     return update;
+}
+
+void BinanceFeed::disconnect() {
+    if(ws && ws->is_open()) {
+        beast::error_code ec;
+        ws->close(websocket::close_code::normal, ec);
+        if(ec) {
+            spdlog::warn("[Binance] Disconnect error: {}", ec.message());
+        } else {
+            spdlog::info("[Binance] Disconnected cleanly");
+        }
+    }
+    ws.reset();
 }

@@ -12,6 +12,7 @@
 #include <optional>
 #include <thread>
 #include <chrono>
+#include <stop_token>
 
 namespace beast = boost::beast;
 namespace http = beast::http;
@@ -24,8 +25,9 @@ class IExchangeFeed {
   public:
     virtual ~IExchangeFeed() = default;
 
-    virtual void run() = 0;
+    virtual void run(std::stop_token) = 0;
     virtual void connect() = 0;
-    virtual void receiveUpdates() = 0;
+    virtual void receiveUpdates(std::stop_token) = 0;
     virtual std::optional<ExchangeUpdate> parseRaw(const std::string&) = 0;
+    virtual void disconnect() = 0;
 };

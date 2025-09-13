@@ -28,10 +28,10 @@ void CryptoComFeed::connect() {
     spdlog::info("[Crypto.com] Subscription message sent");
 }
 
-void CryptoComFeed::receiveUpdates() {
+void CryptoComFeed::receiveUpdates(std::stop_token stoken) {
     beast::flat_buffer buffer;
 
-    while(true) {
+    while(!stoken.stop_requested()) {
         try {
             ws->read(buffer);
             std::string raw = beast::buffers_to_string(buffer.data());
@@ -48,12 +48,13 @@ void CryptoComFeed::receiveUpdates() {
     }
 }
 
-void CryptoComFeed::run() {
-    while(true) {
+void CryptoComFeed::run(std::stop_token stoken) {
+    while(!stoken.stop_requested()) {
         try {
             connect();
-            receiveUpdates();
+            receiveUpdates(stoken);
         } catch (const std::exception &e) {
+            if(stoken.stop_requested()) break;
             spdlog::error("[Crypto.com] Fatal error: {} - retrying in 2s...", e.what());
         }
         std::this_thread::sleep_for(std::chrono::seconds(2));
@@ -90,4 +91,17 @@ std::optional<ExchangeUpdate> CryptoComFeed::parseRaw(const std::string& raw) {
     update.askSize = std::stod(data["ks"].get<std::string>());
 
     return update;
+}
+
+void CryptoComFeed::disconnect() {
+    if(ws && ws->is_open()) {
+        beast::error_code ec;
+        ws->close(websocket::close_code::normal, ec);
+        if(ec) {
+            spdlog::warn("[Crypto.com] Disconnect error: {}", ec.message());
+        } else {
+            spdlog::info("[Crypto.com] Disconnected cleanly");
+        }
+    }
+    ws.reset();
 }

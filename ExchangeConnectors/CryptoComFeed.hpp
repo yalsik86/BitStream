@@ -5,10 +5,11 @@
 class CryptoComFeed : public IExchangeFeed {
   public:
     CryptoComFeed(AggregatorEngine& engine);
-    void run() override;
+    void run(std::stop_token stoken) override;
     void connect() override;
-    void receiveUpdates() override;
+    void receiveUpdates(std::stop_token) override;
     std::optional<ExchangeUpdate> parseRaw(const std::string&) override;
+    void disconnect() override;
 
   private:
     AggregatorEngine& engine;
