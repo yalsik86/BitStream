@@ -8,6 +8,8 @@
 class MarketDataRouter {
   public:
     MarketDataRouter(MulticastPublisher&);
+    void start();
+    void shutdown();
     void ingestEvent(const MarketDataEvent& event);
   
   private:

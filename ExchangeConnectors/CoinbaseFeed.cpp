@@ -89,7 +89,7 @@ void CoinbaseFeed::disconnect() {
         if(ec) {
             spdlog::warn("[Coinbase] Disconnect error: {}", ec.message());
         } else {
-            spdlog::info("[Coinbase] Disconnected cleanly");
+            spdlog::info("[Coinbase] Disconnected gracefully");
         }
     }
     ws.reset();

@@ -100,7 +100,7 @@ void CryptoComFeed::disconnect() {
         if(ec) {
             spdlog::warn("[Crypto.com] Disconnect error: {}", ec.message());
         } else {
-            spdlog::info("[Crypto.com] Disconnected cleanly");
+            spdlog::info("[Crypto.com] Disconnected gracefully");
         }
     }
     ws.reset();

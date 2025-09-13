@@ -1,7 +1,13 @@
 #include "MarketDataRouter.hpp"
 
-MarketDataRouter::MarketDataRouter(MulticastPublisher& publisher1) : multicastPublisher(publisher1) {
+MarketDataRouter::MarketDataRouter(MulticastPublisher& publisher1) : multicastPublisher(publisher1) {}
+
+void MarketDataRouter::start() {
     multicastPublisher.start();
+}
+
+void MarketDataRouter::shutdown() {
+    multicastPublisher.stop();
 }
 
 void MarketDataRouter::ingestEvent(const MarketDataEvent& event) {

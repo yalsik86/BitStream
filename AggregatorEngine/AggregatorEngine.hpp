@@ -18,6 +18,7 @@ class AggregatorEngine {
     AggregatorEngine(MarketDataRouter& router);
     void addConnector(std::unique_ptr<IExchangeFeed> conn);
     void start();
+    void shutdown();
     void ingestRaw(const std::string& exchange, const std::string& rawData);
     void ingestUpdate(const ExchangeUpdate& update);
 

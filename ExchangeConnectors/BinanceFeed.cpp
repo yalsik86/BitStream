@@ -89,7 +89,7 @@ void BinanceFeed::disconnect() {
         if(ec) {
             spdlog::warn("[Binance] Disconnect error: {}", ec.message());
         } else {
-            spdlog::info("[Binance] Disconnected cleanly");
+            spdlog::info("[Binance] Disconnected gracefully");
         }
     }
     ws.reset();

@@ -7,11 +7,27 @@ void AggregatorEngine::addConnector(std::unique_ptr<IExchangeFeed> conn) {
 }
 
 void AggregatorEngine::start() {
+    router.start();
+
     for(auto &conn: connectors) {
         threads.emplace_back(std::jthread([this, ptr = conn.get()]() {
             ptr->run(run_flag);
         }));
     }
+}
+
+void AggregatorEngine::shutdown() {
+    spdlog::info("[Aggregator Engine] Shutting down connectors...");
+    run_flag = false;
+    for(auto& t: threads) {
+        if(t.joinable()) t.join();
+    }
+    for(auto &conn: connectors) {
+        conn->disconnect();
+    }
+
+    spdlog::info("[Aggregator Engine] Shutting down router...");
+    router.shutdown();
 }
 
 inline void AggregatorEngine::updateGlobalBBO(const ExchangeUpdate& update) {

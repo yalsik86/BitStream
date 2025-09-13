@@ -1,4 +1,5 @@
 #pragma once
+#include <spdlog/spdlog.h>
 #include <boost/asio.hpp>
 #include <iostream>
 #include <condition_variable>
@@ -15,6 +16,7 @@ class MulticastPublisher {
   public:
     MulticastPublisher();
     void start();
+    void stop();
     void push(std::vector<uint8_t>& buffer);
     void publish(const std::vector<uint8_t>& buffer);
 

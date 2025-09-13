@@ -98,7 +98,7 @@ void KrakenFeed::disconnect() {
         if(ec) {
             spdlog::warn("[Kraken] Disconnect error: {}", ec.message());
         } else {
-            spdlog::info("[Kraken] Disconnected cleanly");
+            spdlog::info("[Kraken] Disconnected gracefully");
         }
     }
     ws.reset();

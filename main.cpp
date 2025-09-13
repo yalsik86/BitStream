@@ -19,5 +19,8 @@ int main() {
 
     engine.start();
 
+    std::this_thread::sleep_for(std::chrono::seconds(20));
+
+    engine.shutdown();
     return 0;
 }
