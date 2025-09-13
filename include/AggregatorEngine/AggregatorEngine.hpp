@@ -23,7 +23,7 @@ class AggregatorEngine {
     void ingestUpdate(const ExchangeUpdate& update);
 
   private:
-    DataDisseminator& router;
+    DataDisseminator& disseminator;
 
     uint32_t seq = 0;
     std::unordered_map<std::string, ExchangeUpdate> snapshots; // latest updates per-exchange

@@ -2,10 +2,8 @@ cmake_minimum_required(VERSION 3.10)
 project(BitStream)
 
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
-
-# Optimization flag -O1
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O1")
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+add_compile_options(-O1)
 
 # Sources
 set(SOURCES
@@ -27,7 +25,7 @@ find_package(fmt REQUIRED)
 find_package(absl REQUIRED)
 
 # Include directories
-include_directories(
+include_directories(test PRIVATE
     ${Protobuf_INCLUDE_DIRS}
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/include
@@ -49,7 +47,13 @@ target_link_libraries(test
     absl::base
     absl::raw_logging_internal
     absl::log_severity
-    ws2_32
-    bcrypt
-    dbghelp
 )
+
+# Windows system libraries
+if(WIN32)
+    target_link_libraries(test 
+        ws2_32 
+        bcrypt 
+        dbghelp
+    )
+endif()

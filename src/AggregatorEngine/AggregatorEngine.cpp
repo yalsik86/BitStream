@@ -1,13 +1,13 @@
 #include "AggregatorEngine/AggregatorEngine.hpp"
 
-AggregatorEngine::AggregatorEngine(DataDisseminator& router) : router(router) {}
+AggregatorEngine::AggregatorEngine(DataDisseminator& disseminator) : disseminator(disseminator) {}
 
 void AggregatorEngine::addConnector(std::unique_ptr<IExchangeFeed> conn) {
     connectors.push_back(std::move(conn));
 }
 
 void AggregatorEngine::start() {
-    router.start();
+    disseminator.start();
 
     for(auto &conn: connectors) {
         threads.emplace_back(std::jthread([this, ptr = conn.get()]() {
@@ -26,8 +26,8 @@ void AggregatorEngine::shutdown() {
         conn->disconnect();
     }
 
-    spdlog::info("[Aggregator Engine] Shutting down router...");
-    router.shutdown();
+    spdlog::info("[Aggregator Engine] Shutting down disseminator...");
+    disseminator.shutdown();
 }
 
 inline void AggregatorEngine::updateGlobalBBO(const ExchangeUpdate& update) {
@@ -166,7 +166,7 @@ void AggregatorEngine::ingestUpdate(const ExchangeUpdate& update) {
         event.sequence = seq++;
 
         // coutEvent(event);
-        router.ingestEvent(event);
+        disseminator.ingestEvent(event);
     }
 }
 
