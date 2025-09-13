@@ -14,6 +14,7 @@
 
 class AggregatorEngine {
   public:
+    std::atomic<bool> run_flag{true};
     AggregatorEngine(MarketDataRouter& router);
     void addConnector(std::unique_ptr<IExchangeFeed> conn);
     void start();

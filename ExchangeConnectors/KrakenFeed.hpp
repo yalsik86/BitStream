@@ -5,9 +5,9 @@
 class KrakenFeed : public IExchangeFeed {
   public:
     KrakenFeed(AggregatorEngine& engine);
-    void run(std::stop_token) override;
+    void run(std::atomic<bool>&) override;
     void connect() override;
-    void receiveUpdates(std::stop_token) override;
+    void receiveUpdates(std::atomic<bool>&) override;
     std::optional<ExchangeUpdate> parseRaw(const std::string&) override;
     void disconnect() override;
 

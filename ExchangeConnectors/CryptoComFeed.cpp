@@ -28,10 +28,10 @@ void CryptoComFeed::connect() {
     spdlog::info("[Crypto.com] Subscription message sent");
 }
 
-void CryptoComFeed::receiveUpdates(std::stop_token stoken) {
+void CryptoComFeed::receiveUpdates(std::atomic<bool>& run_flag) {
     beast::flat_buffer buffer;
 
-    while(!stoken.stop_requested()) {
+    while(run_flag.load()) {
         try {
             ws->read(buffer);
             std::string raw = beast::buffers_to_string(buffer.data());
@@ -48,15 +48,15 @@ void CryptoComFeed::receiveUpdates(std::stop_token stoken) {
     }
 }
 
-void CryptoComFeed::run(std::stop_token stoken) {
-    while(!stoken.stop_requested()) {
+void CryptoComFeed::run(std::atomic<bool>& run_flag) {
+    while(run_flag.load()) {
         try {
             connect();
-            receiveUpdates(stoken);
+            receiveUpdates(run_flag);
         } catch (const std::exception &e) {
-            if(stoken.stop_requested()) break;
             spdlog::error("[Crypto.com] Fatal error: {} - retrying in 2s...", e.what());
         }
+        if(!run_flag) break;
         std::this_thread::sleep_for(std::chrono::seconds(2));
     }
 }

@@ -8,8 +8,8 @@ void AggregatorEngine::addConnector(std::unique_ptr<IExchangeFeed> conn) {
 
 void AggregatorEngine::start() {
     for(auto &conn: connectors) {
-        threads.emplace_back(std::jthread([ptr = conn.get()](std::stop_token stoken) {
-            ptr->run(stoken);
+        threads.emplace_back(std::jthread([this, ptr = conn.get()]() {
+            ptr->run(run_flag);
         }));
     }
 }

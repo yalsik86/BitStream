@@ -8,7 +8,6 @@ CoinbaseFeed::CoinbaseFeed(AggregatorEngine& engine) :
 void CoinbaseFeed::connect() {
     ws.emplace(ioc, ssl_ctx);
 
-    boost::beast::flat_buffer buffer;
     tcp::resolver resolver(ioc);
     auto const results = resolver.resolve("ws-feed.exchange.coinbase.com", "443");
 
@@ -27,10 +26,10 @@ void CoinbaseFeed::connect() {
     spdlog::info("[Coinbase] Subscription message sent");
 }
 
-void CoinbaseFeed::receiveUpdates(std::stop_token stoken) {
+void CoinbaseFeed::receiveUpdates(std::atomic<bool>& run_flag) {
     beast::flat_buffer buffer;
 
-    while(!stoken.stop_requested()) {
+    while(run_flag) {
         try {
             ws->read(buffer);
             std::string raw = beast::buffers_to_string(buffer.data());
@@ -47,15 +46,15 @@ void CoinbaseFeed::receiveUpdates(std::stop_token stoken) {
     }
 }
 
-void CoinbaseFeed::run(std::stop_token stoken) {
-    while(!stoken.stop_requested()) {
+void CoinbaseFeed::run(std::atomic<bool>& run_flag) {
+    while(run_flag) {
         try {
             connect();
-            receiveUpdates(stoken);
+            receiveUpdates(run_flag);
         } catch (const std::exception &e) {
-            if(stoken.stop_requested()) break;
             spdlog::error("[Coinbase] Fatal error: {} - retrying in 2s...", e.what());
         }
+        if(!run_flag) break;
         std::this_thread::sleep_for(std::chrono::seconds(2));
     }
 }

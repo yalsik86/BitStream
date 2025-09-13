@@ -29,10 +29,10 @@ void KrakenFeed::connect() {
     spdlog::info("[Kraken] Subscription message sent");
 }
 
-void KrakenFeed::receiveUpdates(std::stop_token stoken) {
+void KrakenFeed::receiveUpdates(std::atomic<bool>& run_flag) {
     beast::flat_buffer buffer;
 
-    while(!stoken.stop_requested()) {
+    while(run_flag) {
         try {
             ws->read(buffer);
             std::string raw = beast::buffers_to_string(buffer.data());
@@ -49,15 +49,15 @@ void KrakenFeed::receiveUpdates(std::stop_token stoken) {
     }
 }
 
-void KrakenFeed::run(std::stop_token stoken) {
-    while(!stoken.stop_requested()) {
+void KrakenFeed::run(std::atomic<bool>& run_flag) {
+    while(run_flag) {
         try {
             connect();
-            receiveUpdates(stoken);
+            receiveUpdates(run_flag);
         } catch (const std::exception &e) {
-            if(stoken.stop_requested()) break;
             spdlog::error("[Kraken] Fatal error: {} - retrying in 2s...", e.what());
         }
+        if(!run_flag) break;
         std::this_thread::sleep_for(std::chrono::seconds(2));
     }
 }

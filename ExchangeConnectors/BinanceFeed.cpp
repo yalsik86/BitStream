@@ -8,7 +8,6 @@ BinanceFeed::BinanceFeed(AggregatorEngine& engine) :
 void BinanceFeed::connect() {
     ws.emplace(ioc, ssl_ctx);
 
-    boost::beast::flat_buffer buffer;
     tcp::resolver resolver(ioc);
     auto const results = resolver.resolve("stream.binance.com", "9443");
 
@@ -27,10 +26,10 @@ void BinanceFeed::connect() {
     spdlog::info("[Binance] Subscription message sent");
 }
 
-void BinanceFeed::receiveUpdates(std::stop_token stoken) {
+void BinanceFeed::receiveUpdates(std::atomic<bool>& run_flag) {
     beast::flat_buffer buffer;
 
-    while(!stoken.stop_requested()) {
+    while(run_flag) {
         try {
             ws->read(buffer);
             std::string raw = beast::buffers_to_string(buffer.data());
@@ -47,15 +46,15 @@ void BinanceFeed::receiveUpdates(std::stop_token stoken) {
     }
 }
 
-void BinanceFeed::run(std::stop_token stoken) {
-    while(!stoken.stop_requested()) {
+void BinanceFeed::run(std::atomic<bool>& run_flag) {
+    while(run_flag) {
         try {
             connect();
-            receiveUpdates(stoken);
+            receiveUpdates(run_flag);
         } catch (const std::exception &e) {
-            if(stoken.stop_requested()) break;
             spdlog::error("[Binance] Fatal error: {} - retrying in 2s...", e.what());
         }
+        if(!run_flag) break;
         std::this_thread::sleep_for(std::chrono::seconds(2));
     }
 }
