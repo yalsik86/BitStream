@@ -9,15 +9,15 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O1")
 
 # Sources
 set(SOURCES
-    main.cpp
-    ExchangeConnectors/CoinbaseFeed.cpp
-    ExchangeConnectors/BinanceFeed.cpp
-    ExchangeConnectors/KrakenFeed.cpp
-    ExchangeConnectors/CryptoComFeed.cpp
-    AggregatorEngine/AggregatorEngine.cpp
-    MarketDataRouter/MarketDataRouter.cpp
-    MarketDataRouter/MulticastPublisher.cpp
-    Protocol/market_data.pb.cc
+    src/main.cpp
+    src/FeedHandlers/CoinbaseFeed.cpp
+    src/FeedHandlers/BinanceFeed.cpp
+    src/FeedHandlers/KrakenFeed.cpp
+    src/FeedHandlers/CryptoComFeed.cpp
+    src/AggregatorEngine/AggregatorEngine.cpp
+    src/DataDisseminator/DataDisseminator.cpp
+    src/DataDisseminator/MulticastPublisher.cpp
+    src/Protocol/market_data.pb.cc
 )
 
 # Find required packages
@@ -29,17 +29,18 @@ find_package(absl REQUIRED)
 # Include directories
 include_directories(
     ${Protobuf_INCLUDE_DIRS}
-    ${OPENSSL_INCLUDE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/include
 )
 
 # Create executable
-add_executable(publishertest ${SOURCES})
+add_executable(test ${SOURCES})
 
 # Link libraries
-target_link_libraries(publishertest
+target_link_libraries(test
     ${Protobuf_LIBRARIES}
-    ${OPENSSL_LIBRARIES}
+    OpenSSL::SSL
+    OpenSSL::Crypto
     fmt::fmt
     absl::log_initialize
     absl::log_internal_check_op

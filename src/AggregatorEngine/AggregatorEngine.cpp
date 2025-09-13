@@ -1,6 +1,6 @@
-#include "AggregatorEngine.hpp"
+#include "AggregatorEngine/AggregatorEngine.hpp"
 
-AggregatorEngine::AggregatorEngine(MarketDataRouter& router) : router(router) {}
+AggregatorEngine::AggregatorEngine(DataDisseminator& router) : router(router) {}
 
 void AggregatorEngine::addConnector(std::unique_ptr<IExchangeFeed> conn) {
     connectors.push_back(std::move(conn));

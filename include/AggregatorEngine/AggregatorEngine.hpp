@@ -1,11 +1,11 @@
 #pragma once
-#include "../Protocol/market_data.pb.h"
-#include "../ExchangeConnectors/IExchangeFeed.hpp"
-#include "../MarketDataRouter/MarketDataRouter.hpp"
-#include "../Structs/MarketDataEvent.hpp"
-#include "../Structs/ExchangeUpdate.hpp"
-#include "../Structs/NetImbalance.hpp"
-#include "../Structs/GlobalBBO.hpp"
+#include "Protocol/market_data.pb.h"
+#include "FeedHandlers/IExchangeFeed.hpp"
+#include "DataDisseminator/DataDisseminator.hpp"
+#include "Structs/MarketDataEvent.hpp"
+#include "Structs/ExchangeUpdate.hpp"
+#include "Structs/NetImbalance.hpp"
+#include "Structs/GlobalBBO.hpp"
 #include <unordered_map>
 #include <memory>
 #include <atomic>
@@ -15,7 +15,7 @@
 class AggregatorEngine {
   public:
     std::atomic<bool> run_flag{true};
-    AggregatorEngine(MarketDataRouter& router);
+    AggregatorEngine(DataDisseminator& router);
     void addConnector(std::unique_ptr<IExchangeFeed> conn);
     void start();
     void shutdown();
@@ -23,7 +23,7 @@ class AggregatorEngine {
     void ingestUpdate(const ExchangeUpdate& update);
 
   private:
-    MarketDataRouter& router;
+    DataDisseminator& router;
 
     uint32_t seq = 0;
     std::unordered_map<std::string, ExchangeUpdate> snapshots; // latest updates per-exchange

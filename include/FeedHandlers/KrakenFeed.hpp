@@ -1,10 +1,10 @@
 #pragma once
 #include "IExchangeFeed.hpp"
-#include "../AggregatorEngine/AggregatorEngine.hpp"
+#include "AggregatorEngine/AggregatorEngine.hpp"
 
-class BinanceFeed : public IExchangeFeed {
+class KrakenFeed : public IExchangeFeed {
   public:
-    BinanceFeed(AggregatorEngine& engine);
+    KrakenFeed(AggregatorEngine& engine);
     void run(std::atomic<bool>&) override;
     void connect() override;
     void receiveUpdates(std::atomic<bool>&) override;

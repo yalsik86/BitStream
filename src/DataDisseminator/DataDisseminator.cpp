@@ -1,22 +1,22 @@
-#include "MarketDataRouter.hpp"
+#include "DataDisseminator/DataDisseminator.hpp"
 
-MarketDataRouter::MarketDataRouter(MulticastPublisher& publisher1) : multicastPublisher(publisher1) {}
+DataDisseminator::DataDisseminator(MulticastPublisher& publisher1) : multicastPublisher(publisher1) {}
 
-void MarketDataRouter::start() {
+void DataDisseminator::start() {
     multicastPublisher.start();
 }
 
-void MarketDataRouter::shutdown() {
+void DataDisseminator::shutdown() {
     multicastPublisher.stop();
 }
 
-void MarketDataRouter::ingestEvent(const MarketDataEvent& event) {
+void DataDisseminator::ingestEvent(const MarketDataEvent& event) {
     auto buffer = serialize(event);
 
     multicastPublisher.push(buffer);
 }
 
-inline std::vector<uint8_t> MarketDataRouter::serialize(const MarketDataEvent& event) {
+inline std::vector<uint8_t> DataDisseminator::serialize(const MarketDataEvent& event) {
     MarketDataEventProto msg;
 
     msg.set_sequence(event.sequence);
@@ -55,7 +55,7 @@ inline std::vector<uint8_t> MarketDataRouter::serialize(const MarketDataEvent& e
     return buffer;
 }
 
-inline void MarketDataRouter::coutEncoded(const std::vector<uint8_t>& buffer) {
+inline void DataDisseminator::coutEncoded(const std::vector<uint8_t>& buffer) {
     std::cout << std::dec << "------------------\n";
     std::cout << std::dec << "Buffer size: " << buffer.size() << " bytes\n";
     for(auto &b : buffer) {

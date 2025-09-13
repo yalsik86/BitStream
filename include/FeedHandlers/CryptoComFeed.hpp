@@ -1,6 +1,6 @@
 #pragma once
 #include "IExchangeFeed.hpp"
-#include "../AggregatorEngine/AggregatorEngine.hpp"
+#include "AggregatorEngine/AggregatorEngine.hpp"
 
 class CryptoComFeed : public IExchangeFeed {
   public:

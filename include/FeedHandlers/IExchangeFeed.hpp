@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Structs/ExchangeUpdate.hpp"
+#include "Structs/ExchangeUpdate.hpp"
 
 #include <nlohmann/json.hpp>
 #include <spdlog/spdlog.h>

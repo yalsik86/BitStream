@@ -1,15 +1,15 @@
-#include "ExchangeConnectors/BinanceFeed.hpp"
-#include "ExchangeConnectors/CoinbaseFeed.hpp"
-#include "ExchangeConnectors/KrakenFeed.hpp"
-#include "ExchangeConnectors/CryptoComFeed.hpp"
-#include "ExchangeConnectors/CryptoComFeed.hpp"
+#include "FeedHandlers/BinanceFeed.hpp"
+#include "FeedHandlers/CoinbaseFeed.hpp"
+#include "FeedHandlers/KrakenFeed.hpp"
+#include "FeedHandlers/CryptoComFeed.hpp"
+#include "FeedHandlers/CryptoComFeed.hpp"
 #include "AggregatorEngine/AggregatorEngine.hpp"
-#include "MarketDataRouter/MarketDataRouter.hpp"
-#include "MarketDataRouter/MulticastPublisher.hpp"
+#include "DataDisseminator/DataDisseminator.hpp"
+#include "DataDisseminator/MulticastPublisher.hpp"
 
 int main() {
     MulticastPublisher publisher1;
-    MarketDataRouter router(publisher1);
+    DataDisseminator router(publisher1);
     AggregatorEngine engine(router);
 
     engine.addConnector(std::make_unique<BinanceFeed>(engine));
