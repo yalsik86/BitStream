@@ -8,7 +8,6 @@ CryptoComFeed::CryptoComFeed(AggregatorEngine& engine) :
 void CryptoComFeed::connect() {
     ws.emplace(ioc, ssl_ctx); // fresh websocket
     
-    boost::beast::flat_buffer buffer;
     tcp::resolver resolver(ioc);
     auto const results = resolver.resolve("stream.crypto.com", "443");
 

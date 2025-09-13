@@ -8,7 +8,6 @@ KrakenFeed::KrakenFeed(AggregatorEngine& engine) :
 void KrakenFeed::connect() {
     ws.emplace(ioc, ssl_ctx);
 
-    boost::beast::flat_buffer buffer;
     tcp::resolver resolver(ioc);
     auto const results = resolver.resolve("ws.kraken.com", "443");
 
