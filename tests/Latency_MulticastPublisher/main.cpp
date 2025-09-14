@@ -2,11 +2,27 @@
 #include "TestPublisher.hpp"
 #include "Structs/MarketDataEvent.hpp"
 #include "Protocol/market_data.pb.h"
+#include <random>
 
 void createTestEvent(MarketDataEvent& event);
+
 std::vector<uint8_t> serializeTestEvent(const MarketDataEvent& event);
 
 int main() {
+    // ------ Timers and distibution setup ------
+    std::random_device rd;
+    std::mt19937 gen(rd());
+
+    // Burst size: 20–200 msgs
+    std::uniform_int_distribution<> burst(20, 200);
+    // Delay per message: 5–40 ms
+    std::uniform_int_distribution<> delay(5000, 40000);
+
+    auto next_send = std::chrono::high_resolution_clock::now();
+    
+    int total_msgs = 10000;
+
+    // ------ Publisher Setup ------
     MarketDataEvent event;
     createTestEvent(event);
 
@@ -18,19 +34,21 @@ int main() {
     disseminator.start();
     publisher.start();
 
-    // Simulating 100 events per second => 1 event per 10 ms
-    auto interval = std::chrono::microseconds(10000);
-    auto next_send = std::chrono::high_resolution_clock::now();
-    
-    for(int i=0; i<1000; i++) {
-        auto copy = buffer; // fresh copies to avoid invalidation upon std::move into TimedBuffer
-        
-        next_send += interval;
-        while(next_send > std::chrono::high_resolution_clock::now()) {
-            // spin-wait
-        }
 
-        publisher.push(copy);
+    for(int i=0; i<total_msgs;) {
+        int burst_size = burst(gen);
+        auto interval = std::chrono::microseconds(delay(gen));
+
+        for(int j=0; j<burst_size && i<total_msgs; j++, i++) {
+            auto copy = buffer; // fresh copies to avoid invalidation upon std::move into TimedBuffer
+            
+            next_send += interval;
+            while(next_send > std::chrono::high_resolution_clock::now()) {
+                // spin-wait
+            }
+
+            publisher.push(copy);
+        }
     }
 
     disseminator.shutdown();
