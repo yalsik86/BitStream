@@ -20,17 +20,17 @@ find_package(OpenSSL REQUIRED)
 find_package(fmt REQUIRED)
 find_package(absl REQUIRED)
 
-add_executable(Queue_latency ${SOURCES})
+add_executable(Publisher_latency ${SOURCES})
 
 # Include directories
-target_include_directories(Queue_latency PRIVATE
+target_include_directories(Publisher_latency PRIVATE
     ${Protobuf_INCLUDE_DIRS}
     ../../src
     ../../include
 )
 
 # Link libraries
-target_link_libraries(Queue_latency
+target_link_libraries(Publisher_latency
     ${Protobuf_LIBRARIES}
     OpenSSL::SSL
     OpenSSL::Crypto
@@ -46,7 +46,7 @@ target_link_libraries(Queue_latency
 
 # Windows system libraries
 if(WIN32)
-    target_link_libraries(Queue_latency 
+    target_link_libraries(Publisher_latency 
         ws2_32 
         bcrypt 
         dbghelp
