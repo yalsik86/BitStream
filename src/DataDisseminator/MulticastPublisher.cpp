@@ -11,18 +11,13 @@ void MulticastPublisher::start() {
     running = true;
     worker = std::jthread([this]() {
         spdlog::info("[Multicast Publisher] Worker thread started");
+        std::vector<uint8_t> buffer;
+        
         while(running) {
-            std::vector<uint8_t> buffer;
-            {
-                std::unique_lock<std::mutex> lock(multicast_mtx);
-                cv.wait(lock, [&]() {
-                    return !multicastQ.empty() || !running;
-                });
-                if(!running) break;
-
-                buffer = std::move(multicastQ.front());
-                multicastQ.pop();
+            while(!multicastQ.pop(buffer) && running) {
+                // spin-wait
             }
+            if(!running) break;
 
             publish(buffer);
         }
@@ -31,19 +26,17 @@ void MulticastPublisher::start() {
 
 void MulticastPublisher::stop() {
     running = false;
-    cv.notify_all();
     if(worker.joinable()) {
         worker.join();
-        spdlog::info("[Multicast Publisher] Worker thread exited cleanly");
     }
+    multicastQ.reset();
+    spdlog::info("[Multicast Publisher] Worker thread exited cleanly");
 }
 
 void MulticastPublisher::push(std::vector<uint8_t>& buffer) {
-    {
-        std::lock_guard<std::mutex> lock(multicast_mtx);
-        multicastQ.push(std::move(buffer));
+    while(!multicastQ.push(std::move(buffer))) {
+        // spin-wait
     }
-    cv.notify_one();
 }
 
 void MulticastPublisher::publish(const std::vector<uint8_t>& buffer) {
