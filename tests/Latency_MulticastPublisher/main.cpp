@@ -1,11 +1,11 @@
 #include "DataDisseminator/DataDisseminator.hpp"
+#include "TestPublisher_lf.hpp"
 #include "TestPublisher.hpp"
 #include "Structs/MarketDataEvent.hpp"
 #include "Protocol/market_data.pb.h"
 #include <random>
 
 void createTestEvent(MarketDataEvent& event);
-
 std::vector<uint8_t> serializeTestEvent(const MarketDataEvent& event);
 
 int main() {
@@ -18,22 +18,20 @@ int main() {
     // Delay per message: 5–40 ms
     std::uniform_int_distribution<> delay(5000, 40000);
 
-    auto next_send = std::chrono::high_resolution_clock::now();
-    
     int total_msgs = 10000;
 
-    // ------ Publisher Setup ------
+    // ------ Sample Event Setup ------
     MarketDataEvent event;
     createTestEvent(event);
-
-    TestPublisher publisher;
-    DataDisseminator disseminator(publisher);
-
     auto buffer = serializeTestEvent(event);
 
-    disseminator.start();
-    publisher.start();
+    // ------ lock-based test ------
+    TestPublisher publisher1;
+    DataDisseminator disseminator1(publisher1);
+    disseminator1.start();
+    publisher1.start();
 
+    auto next_send = std::chrono::high_resolution_clock::now();
 
     for(int i=0; i<total_msgs;) {
         int burst_size = burst(gen);
@@ -47,13 +45,43 @@ int main() {
                 // spin-wait
             }
 
-            publisher.push(copy);
+            publisher1.push(copy);
         }
     }
 
-    disseminator.shutdown();
-    publisher.stop();
-    publisher.reportStats();
+    disseminator1.shutdown();
+    publisher1.stop();
+    publisher1.reportStats();
+    // ------ ------ ------ ------
+
+    // ------ lockfree test ------
+    TestPublisher_lf publisher2;
+    DataDisseminator disseminator2(publisher2);
+    disseminator2.start();
+    publisher2.start();
+
+    next_send = std::chrono::high_resolution_clock::now();
+
+    for(int i=0; i<total_msgs;) {
+        int burst_size = burst(gen);
+        auto interval = std::chrono::microseconds(delay(gen));
+
+        for(int j=0; j<burst_size && i<total_msgs; j++, i++) {
+            auto copy = buffer; // fresh copies to avoid invalidation upon std::move into TimedBuffer
+            
+            next_send += interval;
+            while(next_send > std::chrono::high_resolution_clock::now()) {
+                // spin-wait
+            }
+
+            publisher2.push(copy);
+        }
+    }
+
+    disseminator2.shutdown();
+    publisher2.stop();
+    publisher2.reportStats();
+    // ------ ------ ------ ------
 }
 
 

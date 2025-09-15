@@ -1,23 +1,18 @@
-#include "TestPublisher.hpp"
+#include "TestPublisher_lf.hpp"
 
-TestPublisher::TestPublisher() : MulticastPublisher() {}
+TestPublisher_lf::TestPublisher_lf() : MulticastPublisher() {}
 
-void TestPublisher::start() {
+void TestPublisher_lf::start() {
     running = true;
     worker = std::jthread([this]() {
         spdlog::info("[Multicast Publisher] Worker thread started");
-        while(running) {
-            TimedBuffer tb;
-            {
-                std::unique_lock<std::mutex> lock(test_mtx);
-                cv.wait(lock, [&]() {
-                    return !testQ.empty() || !running;
-                });
-                if(!running) break;
+        TimedBuffer tb;
 
-                tb = std::move(testQ.front());
-                testQ.pop();
+        while(running) {
+            while(!testQ.pop(tb) && running) {
+                // spin-wait
             }
+            if(!running) break;
 
             MulticastPublisher::publish(tb.data);
 
@@ -30,26 +25,24 @@ void TestPublisher::start() {
     });
 }
 
-void TestPublisher::push(std::vector<uint8_t>& buffer) {
+void TestPublisher_lf::push(std::vector<uint8_t>& buffer) {
     TimedBuffer tb;
     tb.data = std::move(buffer);
     tb.enqueue_ts = std::chrono::high_resolution_clock::now();
-    {
-        std::lock_guard<std::mutex> lock(test_mtx);
-        testQ.push(std::move(tb));
+    while(!testQ.push(std::move(tb))){
+        // spin-wait
     }
-    cv.notify_one();
 }
 
-void TestPublisher::stop() {
+void TestPublisher_lf::stop() {
     running = false;
-    cv.notify_all();
     if(worker.joinable()) {
         worker.join();
     }
+    testQ.reset();
 }
 
-void TestPublisher::reportStats() {
+void TestPublisher_lf::reportStats() {
     if(samples.empty()) {
         std::cout << "No samples collected\n";
         return;

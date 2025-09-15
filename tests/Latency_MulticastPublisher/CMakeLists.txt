@@ -9,6 +9,7 @@ add_compile_options(-O3)
 set(SOURCES
     main.cpp
     TestPublisher.cpp
+    TestPublisher_lf.cpp
     ../../src/Protocol/market_data.pb.cc
     ../../src/DataDisseminator/MulticastPublisher.cpp
     ../../src/DataDisseminator/DataDisseminator.cpp
