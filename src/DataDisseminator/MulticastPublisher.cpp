@@ -12,6 +12,7 @@ void MulticastPublisher::start() {
     worker = std::jthread([this]() {
         spdlog::info("[Multicast Publisher] Worker thread started");
         std::vector<uint8_t> buffer;
+        buffer.reserve(256);
         
         while(running) {
             while(!multicastQ.pop(buffer) && running) {
