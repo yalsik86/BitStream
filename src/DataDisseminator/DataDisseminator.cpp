@@ -1,18 +1,22 @@
 #include "DataDisseminator/DataDisseminator.hpp"
 
-DataDisseminator::DataDisseminator(MulticastPublisher& publisher1) : multicastPublisher(publisher1) {}
+DataDisseminator::DataDisseminator(MulticastPublisher& publisher, Retransmitter& retransmitter) 
+    : multicastPublisher(publisher), retransmitter(retransmitter) {}
 
 void DataDisseminator::start() {
+    retransmitter.start();
     multicastPublisher.start();
 }
 
 void DataDisseminator::shutdown() {
     multicastPublisher.stop();
+    retransmitter.stop();
 }
 
 void DataDisseminator::ingestEvent(const MarketDataEvent& event) {
     auto buffer = serialize(event);
 
+    retransmitter.put(event.sequence, buffer);
     multicastPublisher.push(buffer);
 }
 

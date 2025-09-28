@@ -6,10 +6,12 @@
 #include "AggregatorEngine/AggregatorEngine.hpp"
 #include "DataDisseminator/DataDisseminator.hpp"
 #include "DataDisseminator/MulticastPublisher.hpp"
+#include "DataDisseminator/Retransmitter.hpp"
 
 int main() {
-    MulticastPublisher publisher1;
-    DataDisseminator router(publisher1);
+    Retransmitter retransmitter;
+    MulticastPublisher publisher;
+    DataDisseminator router(publisher, retransmitter);
     AggregatorEngine engine(router);
 
     engine.addConnector(std::make_unique<BinanceFeed>(engine));

@@ -3,7 +3,7 @@ project(BitStream)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-add_compile_options(-O1)
+add_compile_options(-O2)
 
 # Sources
 set(SOURCES
@@ -15,6 +15,7 @@ set(SOURCES
     src/AggregatorEngine/AggregatorEngine.cpp
     src/DataDisseminator/DataDisseminator.cpp
     src/DataDisseminator/MulticastPublisher.cpp
+    src/DataDisseminator/Retransmitter.cpp
     src/Protocol/market_data.pb.cc
 )
 
