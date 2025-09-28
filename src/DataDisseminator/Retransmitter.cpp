@@ -1,6 +1,6 @@
 #include "DataDisseminator/Retransmitter.hpp"
 
-Retransmitter::Retransmitter() : socket(ioc, udp::endpoint(udp::v4(), 0)), retransmitter_endpoint(asio::ip::make_address_v4("192.168.29.223"), 8080) {
+Retransmitter::Retransmitter() : socket(ioc, udp::endpoint(udp::v4(), 8080)), retransmitter_endpoint(asio::ip::make_address_v4("192.168.29.226"), 8080) {
     retransmitBuffer.resize(4096);
     socket.set_option(asio::ip::unicast::hops(5));
 }
@@ -17,9 +17,9 @@ void Retransmitter::start() {
             try {
                 udp::endpoint sender_endpoint;
                 size_t bytes = socket.receive_from(asio::buffer(receive_buffer), sender_endpoint);
-
+                spdlog::info("[Retransmitter] Received a request");
                 if(bytes!=sizeof(uint32_t)) {
-                    spdlog::warn("Received invalid request ({} bytes)", bytes);
+                    spdlog::warn("[Retransmitter] Received invalid request ({} bytes)", bytes);
                     continue;
                 }
                 if(!running) break;
