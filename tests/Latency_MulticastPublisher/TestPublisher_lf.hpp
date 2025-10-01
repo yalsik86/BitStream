@@ -13,7 +13,7 @@ class TestPublisher_lf : public MulticastPublisher {
     TestPublisher_lf();
     void start();
     void stop();
-    void push(std::vector<uint8_t>& buffer);
+    void push(TimedBuffer& buffer);
     void publish(const std::vector<uint8_t>& buffer);
 
     void reportStats();

@@ -1,4 +1,5 @@
 #include "DataDisseminator/DataDisseminator.hpp"
+#include "DataDisseminator/Retransmitter.hpp"
 #include "TestPublisher_lf.hpp"
 #include "TestPublisher.hpp"
 #include "Structs/MarketDataEvent.hpp"
@@ -27,7 +28,8 @@ int main() {
 
     // ------ lock-based test ------
     TestPublisher publisher1;
-    DataDisseminator disseminator1(publisher1);
+    Retransmitter retransmitter1;
+    DataDisseminator disseminator1(publisher1, retransmitter1);
     disseminator1.start();
     publisher1.start();
 
@@ -38,14 +40,15 @@ int main() {
         auto interval = std::chrono::microseconds(delay(gen));
 
         for(int j=0; j<burst_size && i<total_msgs; j++, i++) {
-            auto copy = buffer; // fresh copies to avoid invalidation upon std::move into TimedBuffer
-            
+            TimedBuffer tb;
+            tb.data = buffer;
+
             next_send += interval;
             while(next_send > std::chrono::high_resolution_clock::now()) {
                 // spin-wait
             }
-
-            publisher1.push(copy);
+            tb.enqueue_ts = std::chrono::high_resolution_clock::now();
+            publisher1.push(tb);
         }
     }
 
@@ -56,7 +59,8 @@ int main() {
 
     // ------ lockfree test ------
     TestPublisher_lf publisher2;
-    DataDisseminator disseminator2(publisher2);
+    Retransmitter retransmitter2;
+    DataDisseminator disseminator2(publisher2, retransmitter2);
     disseminator2.start();
     publisher2.start();
 
@@ -67,14 +71,15 @@ int main() {
         auto interval = std::chrono::microseconds(delay(gen));
 
         for(int j=0; j<burst_size && i<total_msgs; j++, i++) {
-            auto copy = buffer; // fresh copies to avoid invalidation upon std::move into TimedBuffer
+            TimedBuffer tb;
+            tb.data = buffer;
             
             next_send += interval;
             while(next_send > std::chrono::high_resolution_clock::now()) {
                 // spin-wait
             }
-
-            publisher2.push(copy);
+            tb.enqueue_ts = std::chrono::high_resolution_clock::now();
+            publisher2.push(tb);
         }
     }
 

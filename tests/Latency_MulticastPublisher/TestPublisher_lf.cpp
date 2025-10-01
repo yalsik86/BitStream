@@ -7,6 +7,7 @@ void TestPublisher_lf::start() {
     worker = std::jthread([this]() {
         spdlog::info("[Multicast Publisher] Worker thread started");
         TimedBuffer tb;
+        tb.data.reserve(256);
 
         while(running) {
             while(!testQ.pop(tb) && running) {
@@ -25,10 +26,7 @@ void TestPublisher_lf::start() {
     });
 }
 
-void TestPublisher_lf::push(std::vector<uint8_t>& buffer) {
-    TimedBuffer tb;
-    tb.data = std::move(buffer);
-    tb.enqueue_ts = std::chrono::high_resolution_clock::now();
+void TestPublisher_lf::push(TimedBuffer& tb) {
     while(!testQ.push(std::move(tb))){
         // spin-wait
     }
@@ -57,10 +55,12 @@ void TestPublisher_lf::reportStats() {
 
     auto p95 = samples[samples.size() * 95 / 100];
     auto p99 = samples[samples.size() * 99 / 100];
+    auto med = samples[samples.size() / 2];
 
     std::cout << "Latency stats\n"
               << "min: " << min << " us\n"
               << "avg: " << avg << " us\n"
+              << "med: " << med << " us\n"
               << "p95: " << p95 << " us\n"
               << "p99: " << p99 << " us\n"
               << "max: " << max << " us\n";
