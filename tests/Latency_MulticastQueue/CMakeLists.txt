@@ -11,6 +11,7 @@ set(SOURCES
     TestPublisher.cpp
     ../../src/Protocol/market_data.pb.cc
     ../../src/DataDisseminator/MulticastPublisher.cpp
+    ../../src/DataDisseminator/Retransmitter.cpp
     ../../src/DataDisseminator/DataDisseminator.cpp
 )
 

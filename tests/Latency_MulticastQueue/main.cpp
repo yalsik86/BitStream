@@ -1,4 +1,5 @@
 #include "DataDisseminator/DataDisseminator.hpp"
+#include "DataDisseminator/Retransmitter.hpp"
 #include "TestPublisher.hpp"
 #include "Structs/MarketDataEvent.hpp"
 #include "Protocol/market_data.pb.h"
@@ -27,7 +28,8 @@ int main() {
     createTestEvent(event);
 
     TestPublisher publisher;
-    DataDisseminator disseminator(publisher);
+    Retransmitter retransmitter;
+    DataDisseminator disseminator(publisher, retransmitter);
 
     auto buffer = serializeTestEvent(event);
 
