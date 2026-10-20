@@ -6,15 +6,33 @@ CoinbaseFeed::CoinbaseFeed(AggregatorEngine& engine) :
 }
 
 void CoinbaseFeed::connect() {
-    ws.emplace(ioc, ssl_ctx);
+    StageTimer connect_timer("[Coinbase] Feed Handler connect()");
+    {
+        StageTimer timer("[Coinbase] Websocket Construction");
+        ws.emplace(ioc, ssl_ctx);
+    }
 
     tcp::resolver resolver(ioc);
-    auto const results = resolver.resolve("ws-feed.exchange.coinbase.com", "443");
+    tcp::resolver::results_type results;
+    {
+        StageTimer timer("[Coinbase] DNS Resolution");
+        results = resolver.resolve(tcp::v4(), "ws-feed.exchange.coinbase.com", "443");
+    }
 
-    asio::connect(ws->next_layer().next_layer(), results);
+    {
+        StageTimer timer("[Coinbase] TCP Connection");
+        asio::connect(ws->next_layer().next_layer(), results);
+    }
+    
     SSL_set_tlsext_host_name(ws->next_layer().native_handle(), "ws-feed.exchange.coinbase.com");
-    ws->next_layer().handshake(ssl::stream_base::client);
-    ws->handshake("ws-feed.exchange.coinbase.com", "/");
+    {
+        StageTimer timer("[Coinbase] SSL Handshake");
+        ws->next_layer().handshake(ssl::stream_base::client);
+    }
+    {
+        StageTimer timer("[Coinbase] Websocket Upgrade");
+        ws->handshake("ws-feed.exchange.coinbase.com", "/");
+    }
     spdlog::info("[Coinbase] Connected and handshake complete");
 
     nlohmann::json msg = {
@@ -22,7 +40,12 @@ void CoinbaseFeed::connect() {
         {"product_ids", {"BTC-USD"}},
         {"channels", {"ticker", "heartbeat"}} 
     };
-    ws->write(asio::buffer(msg.dump()));
+    
+    auto payload = msg.dump();
+    {
+        StageTimer timer("[Coinbase] Subscription Write");
+        ws->write(asio::buffer(payload));
+    }
     spdlog::info("[Coinbase] Subscription message sent");
 }
 

@@ -6,15 +6,33 @@ CryptoComFeed::CryptoComFeed(AggregatorEngine& engine) :
 }
 
 void CryptoComFeed::connect() {
-    ws.emplace(ioc, ssl_ctx); // fresh websocket
+    StageTimer connect_timer("[Crypto.com] Feed Handler connect()");
+    {
+        StageTimer timer("[Crypto.com] WebSocket Construction");
+        ws.emplace(ioc, ssl_ctx); 
+    }
     
     tcp::resolver resolver(ioc);
-    auto const results = resolver.resolve("stream.crypto.com", "443");
+    tcp::resolver::results_type results;
+    {
+        StageTimer timer("[Crypto.com] DNS Resolution");
+        results = resolver.resolve(tcp::v4(), "stream.crypto.com", "443");
+    }
 
-    asio::connect(ws->next_layer().next_layer(), results);
+    {
+        StageTimer timer("[Crypto.com] TCP Connection");
+        asio::connect(ws->next_layer().next_layer(), results);
+    }
+
     SSL_set_tlsext_host_name(ws->next_layer().native_handle(), "stream.crypto.com");
-    ws->next_layer().handshake(ssl::stream_base::client);
-    ws->handshake("stream.crypto.com", "/v2/market");
+    {
+        StageTimer timer("[Crypto.com] SSL Handshake");
+        ws->next_layer().handshake(ssl::stream_base::client);
+    }
+    {
+        StageTimer timer("[Crypto.com] WebSocket Upgrade");
+        ws->handshake("stream.crypto.com", "/v2/market");
+    }
     spdlog::info("[Crypto.com] Connected and handshake complete");
 
     nlohmann::json msg = {
@@ -23,7 +41,12 @@ void CryptoComFeed::connect() {
             {"channels", {"ticker.BTC_USDT"}}
         }}
     };
-    ws->write(asio::buffer(msg.dump()));
+
+    auto payload = msg.dump();
+    {
+        StageTimer timer("[Crypto.com] Subscription Write");
+        ws->write(asio::buffer(payload));
+    }
     spdlog::info("[Crypto.com] Subscription message sent");
 }
 

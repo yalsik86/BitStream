@@ -6,15 +6,33 @@ KrakenFeed::KrakenFeed(AggregatorEngine& engine) :
 }
 
 void KrakenFeed::connect() {
-    ws.emplace(ioc, ssl_ctx);
+    StageTimer connect_timer("[Kraken] Feed Handler connect()");
+    {
+        StageTimer timer("[Kraken] WebSocket Construction");
+        ws.emplace(ioc, ssl_ctx);
+    }
 
     tcp::resolver resolver(ioc);
-    auto const results = resolver.resolve("ws.kraken.com", "443");
+    tcp::resolver::results_type results;
+    {
+        StageTimer timer("[Kraken] DNS Resolution");
+        results = resolver.resolve(tcp::v4(), "ws.kraken.com", "443");
+    }
 
-    asio::connect(ws->next_layer().next_layer(), results);
+    {
+        StageTimer timer("[Kraken] TCP Connection");
+        asio::connect(ws->next_layer().next_layer(), results);
+    }
+
     SSL_set_tlsext_host_name(ws->next_layer().native_handle(), "ws.kraken.com");
-    ws->next_layer().handshake(ssl::stream_base::client);
-    ws->handshake("ws.kraken.com", "/v2");
+    {
+        StageTimer timer("[Kraken] SSL Handshake");
+        ws->next_layer().handshake(ssl::stream_base::client);
+    }
+    {
+        StageTimer timer("[Kraken] WebSocket Upgrade");
+        ws->handshake("ws.kraken.com", "/v2");
+    }
     spdlog::info("[Kraken] Connected and handshake complete");
 
     nlohmann::json msg = {
@@ -24,7 +42,12 @@ void KrakenFeed::connect() {
             {"symbol", {"BTC/USD"}}
         }}
     };
-    ws->write(asio::buffer(msg.dump()));
+
+    auto payload = msg.dump();
+    {
+        StageTimer timer("[Kraken] Subscription Write");
+        ws->write(asio::buffer(payload));
+    }
     spdlog::info("[Kraken] Subscription message sent");
 }
 

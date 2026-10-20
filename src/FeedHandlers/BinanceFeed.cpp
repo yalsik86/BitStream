@@ -6,15 +6,33 @@ BinanceFeed::BinanceFeed(AggregatorEngine& engine) :
 }
 
 void BinanceFeed::connect() {
-    ws.emplace(ioc, ssl_ctx);
+    StageTimer connect_timer("[Binance] Feed Handler connect()");
+    {
+        StageTimer timer("[Binance] WebSocket Construction");
+        ws.emplace(ioc, ssl_ctx);
+    }
 
     tcp::resolver resolver(ioc);
-    auto const results = resolver.resolve("stream.binance.com", "9443");
+    tcp::resolver::results_type results;
+    {
+        StageTimer timer("[Binance] DNS Resolution");
+        results = resolver.resolve(tcp::v4(), "stream.binance.com", "9443");
+    }
 
-    asio::connect(ws->next_layer().next_layer(), results);
+    {
+        StageTimer timer("[Binance] TCP Connection");
+        asio::connect(ws->next_layer().next_layer(), results);
+    }
+
     SSL_set_tlsext_host_name(ws->next_layer().native_handle(), "stream.binance.com");
-    ws->next_layer().handshake(ssl::stream_base::client);
-    ws->handshake("stream.binance.com", "/ws");
+    {
+        StageTimer timer("[Binance] SSL Handshake");
+        ws->next_layer().handshake(ssl::stream_base::client);
+    }
+    {
+        StageTimer timer("[Binance] WebSocket Upgrade");
+        ws->handshake("stream.binance.com", "/ws");
+    }
     spdlog::info("[Binance] Connected and handshake complete");
 
     nlohmann::json msg = {
@@ -22,7 +40,12 @@ void BinanceFeed::connect() {
         {"params", {"btcusdt@ticker"}},
         {"id", 1}
     };
-    ws->write(asio::buffer(msg.dump()));
+    
+    auto payload = msg.dump();
+    {
+        StageTimer timer("[Binance] Subscription Write");
+        ws->write(asio::buffer(payload));
+    }
     spdlog::info("[Binance] Subscription message sent");
 }
 
