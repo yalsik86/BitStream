@@ -8,7 +8,7 @@
 namespace net = boost::asio;
 using boost::asio::ip::udp;
 
-inline void coutEvent(const MarketDataEvent& event) {
+inline void coutEvent(const MarketDataEvent& event, size_t buffer_size) {
     std::cout << std::fixed << std::setprecision(4)
     <<"------["<<event.symbol.data()<<"]------\n"
     <<"Sequence Number: "<<event.sequence<<"\n"
@@ -23,10 +23,11 @@ inline void coutEvent(const MarketDataEvent& event) {
     <<"| Simple_Mid1: "<<event.simpleMid1<<" | Simple_Mid2: "<<event.simpleMid2<<"\n"
     <<"| Weighted_Mid1: "<<event.weightedMid1<<" | Weighted_Mid2: "<<event.weightedMid2<<"\n"
     <<"    - Simple Divergence: "<<event.simpleDivergence<<"\n"
-    <<"    - Weighted Divergence: "<<event.weightedDivergence<<"\n";
+    <<"    - Weighted Divergence: "<<event.weightedDivergence<<"\n\n"
+    <<"| Buffer Size: "<<buffer_size<<" bytes\n";
 }
 
-std::array<char, 16> toArray(const std::string& str) {
+std::array<char, 16> to_array(const std::string& str) {
     std::array<char, 16> arr{};
     std::strncpy(arr.data(), str.c_str(), 16);
     return arr;
@@ -46,27 +47,27 @@ int main() {
     udp::endpoint sender_endpoint;
 
     while (true) {
-        size_t len = socket.receive_from(net::buffer(data), sender_endpoint);
+        size_t buffer_size = socket.receive_from(net::buffer(data), sender_endpoint);
 
         MarketDataEventProto proto;
-        if (!proto.ParseFromArray(data.data(), static_cast<int>(len))) {
+        if (!proto.ParseFromArray(data.data(), static_cast<int>(buffer_size))) {
             std::cerr << "Failed to parse protobuf\n";
             continue;
         }
 
         MarketDataEvent event;
         event.sequence = proto.sequence();
-        event.symbol = toArray(proto.symbol());
-        event.exchange1 = toArray(proto.exchange1());
-        event.exchange2 = toArray(proto.exchange2());
+        event.symbol = to_array(proto.symbol());
+        event.exchange1 = to_array(proto.exchange1());
+        event.exchange2 = to_array(proto.exchange2());
         event.spread12 = proto.spread12();
         event.spread21 = proto.spread21();
         event.bestBidPrice = proto.bestbidprice();
         event.bestBidSize = proto.bestbidsize();
-        event.bestBidExchange = toArray(proto.bestbidexchange());
+        event.bestBidExchange = to_array(proto.bestbidexchange());
         event.bestAskPrice = proto.bestaskprice();
         event.bestAskSize = proto.bestasksize();
-        event.bestAskExchange = toArray(proto.bestaskexchange());
+        event.bestAskExchange = to_array(proto.bestaskexchange());
         event.imbalance1 = proto.imbalance1();
         event.imbalance2 = proto.imbalance2();
         event.aggImbalance = proto.aggimbalance();
@@ -77,7 +78,7 @@ int main() {
         event.weightedMid2 = proto.weightedmid2();
         event.weightedDivergence = proto.weighteddivergence();
 
-        coutEvent(event);
+        coutEvent(event, buffer_size);
     }
 
     google::protobuf::ShutdownProtobufLibrary();
