@@ -24,7 +24,8 @@ inline void coutEvent(const MarketDataEvent& event, size_t buffer_size) {
     <<"| Weighted_Mid1: "<<event.weightedMid1<<" | Weighted_Mid2: "<<event.weightedMid2<<"\n"
     <<"    - Simple Divergence: "<<event.simpleDivergence<<"\n"
     <<"    - Weighted Divergence: "<<event.weightedDivergence<<"\n\n"
-    <<"| Buffer Size: "<<buffer_size<<" bytes\n";
+    <<"| Received Buffer Size: "<<buffer_size<<" bytes\n"
+    <<"| MarketDataEvent struct Size: "<<sizeof(MarketDataEvent)<<" bytes\n";
 }
 
 std::array<char, 16> to_array(const std::string& str) {
