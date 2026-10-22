@@ -1,14 +1,14 @@
 #pragma once
-#include <string>
+#include <array>
 
 struct ExchangeUpdate {
-    std::string exchange;
-    std::string symbol;
-    
-    double bidPrice = 0.0;
-    double bidSize  = 0.0;
-    double askPrice = 0.0;
-    double askSize  = 0.0;
+    std::array<char, 16> exchange{};
+    std::array<char, 8> symbol{};
 
-    double lastPrice = 0.0;
+    double bidPrice{};
+    double bidSize {};
+    double askPrice{};
+    double askSize {};
+
+    double lastPrice{};
 };

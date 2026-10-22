@@ -1,13 +1,13 @@
 #pragma once
-#include <string>
+#include <array>
 #include <limits>
 
 struct GlobalBBO {
-    double bestBid = -1.0;
-    std::string bestBidEx;
-    double bestBidSize = 0.0;
+    double bestBid{-1.0};
+    std::array<char, 16> bestBidEx{};
+    double bestBidSize{};
 
-    double bestAsk = std::numeric_limits<double>::max();
-    std::string bestAskEx;
-    double bestAskSize = 0.0;
+    double bestAsk{std::numeric_limits<double>::max()};
+    std::array<char, 16> bestAskEx{};
+    double bestAskSize{};
 };
