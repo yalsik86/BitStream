@@ -26,5 +26,11 @@ int main() {
     std::cout << "ExchangeUpdate: " << sizeof(ExchangeUpdate) << '\n';
     std::cout << "GlobalBBO: " << sizeof(GlobalBBO) << '\n';
     std::cout << "MarketDataEvent: " << sizeof(MarketDataEvent) << '\n';
-    std::cout << "NetImbalance: " << sizeof(NetImbalance) << '\n';
+    std::cout << "NetImbalance: " << sizeof(NetImbalance) << "\n\n";
+
+    std::cout << "Struct alignments (bytes):\n";
+    std::cout << "ExchangeUpdate Alignment: " << alignof(ExchangeUpdate) << '\n';
+    std::cout << "GlobalBBO Alignment: " << alignof(GlobalBBO) << '\n';
+    std::cout << "MarketDataEvent Alignment: " << alignof(MarketDataEvent) << '\n';
+    std::cout << "NetImbalance Alignment: " << alignof(NetImbalance) << '\n';
 }
