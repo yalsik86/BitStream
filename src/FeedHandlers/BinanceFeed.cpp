@@ -93,8 +93,10 @@ std::optional<ExchangeUpdate> BinanceFeed::parseRaw(const std::string& raw) {
     }
 
     ExchangeUpdate update;
-    update.exchange = "Binance";
-    update.symbol = j["s"];
+    StringUtils::assignStringToArray(update.exchange, "Binance");
+
+    const auto& symbol = j["s"].get_ref<const std::string&>();
+    StringUtils::assignStringToArray(update.symbol, symbol);
 
     update.bidPrice = std::stod(j["b"].get<std::string>());
     update.bidSize = std::stod(j["B"].get<std::string>());

@@ -2,6 +2,7 @@
 #include "IExchangeFeed.hpp"
 #include "AggregatorEngine/AggregatorEngine.hpp"
 #include "Utils/StageTimer.hpp"
+#include "Utils/StringUtils.hpp"
 
 class CryptoComFeed : public IExchangeFeed {
   public:

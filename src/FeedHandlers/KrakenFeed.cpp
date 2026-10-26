@@ -101,8 +101,10 @@ std::optional<ExchangeUpdate> KrakenFeed::parseRaw(const std::string& raw) {
     const auto& data = j["data"][0];
 
     ExchangeUpdate update;
-    update.exchange = "Kraken";
-    update.symbol = data["symbol"];
+    StringUtils::assignStringToArray(update.exchange, "Kraken");
+    
+    const auto& symbol = data["symbol"].get_ref<const std::string&>();
+    StringUtils::assignStringToArray(update.symbol, symbol);
 
     update.bidPrice = data["bid"].get<double>();
     update.bidSize = data["bid_qty"].get<double>();
