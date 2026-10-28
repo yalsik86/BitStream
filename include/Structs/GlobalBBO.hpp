@@ -2,12 +2,14 @@
 #include <array>
 #include <limits>
 
+#include "Enums/ExchangeID.hpp"
+
 struct GlobalBBO {
     double bestBid{-1.0};
-    std::array<char, 16> bestBidEx{};
+    ExchangeId bestBidExchangeId{};
     double bestBidSize{};
 
     double bestAsk{std::numeric_limits<double>::max()};
-    std::array<char, 16> bestAskEx{};
+    ExchangeId bestAskExchangeId{};
     double bestAskSize{};
 };

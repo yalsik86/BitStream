@@ -1,8 +1,12 @@
 #pragma once
 #include <array>
 
+#include "Enums/ExchangeID.hpp"
+
 struct ExchangeUpdate {
-    std::array<char, 16> exchange{};
+    ExchangeId exchangeId{};
+    bool hasReceivedUpdate{false};
+
     std::array<char, 8> symbol{};
 
     double bidPrice{};
