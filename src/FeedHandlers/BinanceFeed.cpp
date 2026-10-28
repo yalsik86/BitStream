@@ -93,7 +93,7 @@ std::optional<ExchangeUpdate> BinanceFeed::parseRaw(const std::string& raw) {
     }
 
     ExchangeUpdate update;
-    StringUtils::assignStringToArray(update.exchange, "Binance");
+    update.exchangeId = ExchangeId::Binance;
 
     const auto& symbol = j["s"].get_ref<const std::string&>();
     StringUtils::assignStringToArray(update.symbol, symbol);

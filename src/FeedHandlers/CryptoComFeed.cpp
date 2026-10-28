@@ -101,10 +101,10 @@ std::optional<ExchangeUpdate> CryptoComFeed::parseRaw(const std::string& raw) {
         return std::nullopt;
     }
 
-    const auto& data = j["result"]["data"][0];
+    const auto& data = j["result"]["data"][0]; // TODO: check if get_ref is needed for performance
 
     ExchangeUpdate update;
-    StringUtils::assignStringToArray(update.exchange, "Crypto.com");
+    update.exchangeId = ExchangeId::CryptoCom;
 
     const auto& symbol = data["s"].get_ref<const std::string&>();
     StringUtils::assignStringToArray(update.symbol, symbol);

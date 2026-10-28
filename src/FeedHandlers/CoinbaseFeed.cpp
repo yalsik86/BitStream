@@ -93,7 +93,7 @@ std::optional<ExchangeUpdate> CoinbaseFeed::parseRaw(const std::string& raw) {
     }
 
     ExchangeUpdate update;
-    StringUtils::assignStringToArray(update.exchange, "Coinbase");
+    update.exchangeId = ExchangeId::Coinbase;
 
     const auto& symbol = j["product_id"].get_ref<const std::string&>();
     StringUtils::assignStringToArray(update.symbol, symbol);
