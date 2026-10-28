@@ -15,6 +15,10 @@ enum class ExchangeId : std::uint8_t {
 
 inline constexpr std::size_t EXCHANGE_COUNT = static_cast<std::size_t>(ExchangeId::Count);
 
+constexpr std::size_t ExchangeIdToIndex(ExchangeId id) noexcept {
+    return static_cast<std::size_t>(id);
+}
+
 constexpr std::string_view ExchangeIdToExchangeName(ExchangeId id) noexcept {
     switch (id) {
         case ExchangeId::Binance:
