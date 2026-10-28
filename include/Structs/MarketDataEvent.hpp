@@ -5,7 +5,7 @@
 struct MarketDataEvent {
     uint32_t sequence{};
     
-    std::array<char, 16> symbol{};
+    std::array<char, 8> symbol{};
 
     // cross-exchange spreads
     std::array<char, 16> exchange1{};
