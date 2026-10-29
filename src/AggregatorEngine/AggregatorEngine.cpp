@@ -30,60 +30,69 @@ void AggregatorEngine::shutdown() {
     disseminator.shutdown();
 }
 
-inline void AggregatorEngine::updateGlobalBBO(const ExchangeUpdate& update) {
+void AggregatorEngine::updateGlobalBBO(const ExchangeUpdate& update) {
     // Best Bid update
-    if(update.bidPrice > globalBBO.bestBid) {
-        globalBBO.bestBid = update.bidPrice;
-        globalBBO.bestBidSize = update.bidSize;
-        globalBBO.bestBidEx = update.exchange;
+    if(update.bidPrice > globalBBOState.bestBid) { // update new best bid
+        globalBBOState.bestBid = update.bidPrice;
+        globalBBOState.bestBidSize = update.bidSize;
+        globalBBOState.bestBidExchangeId = update.exchangeId;
     } 
-    else if(update.exchange == globalBBO.bestBidEx) {
-        globalBBO.bestBid = -1.0;
-        for (auto& [ex, upd] : snapshots) {
-            if (upd.bidPrice > globalBBO.bestBid) {
-                globalBBO.bestBid = upd.bidPrice;
-                globalBBO.bestBidSize = upd.bidSize;
-                globalBBO.bestBidEx = ex;
+    else if(update.exchangeId == globalBBOState.bestBidExchangeId) { // re-evaluate from snapshots if best bid exchange updated it's best bid
+        globalBBOState.bestBid = -1.0;
+        globalBBOState.bestBidSize = 0.0;
+        globalBBOState.bestBidExchangeId = ExchangeId::Count;
+
+        for (auto& snapshot : snapshots) {
+            if (snapshot.hasReceivedUpdate && snapshot.bidPrice > globalBBOState.bestBid) {
+                globalBBOState.bestBid = snapshot.bidPrice;
+                globalBBOState.bestBidSize = snapshot.bidSize;
+                globalBBOState.bestBidExchangeId = snapshot.exchangeId;
             }
         }
     }
 
     // Best Ask update
-    if(update.askPrice < globalBBO.bestAsk) {
-        globalBBO.bestAsk = update.askPrice;
-        globalBBO.bestAskSize = update.askSize;
-        globalBBO.bestAskEx = update.exchange;
+    if(update.askPrice < globalBBOState.bestAsk) { // update new best ask
+        globalBBOState.bestAsk = update.askPrice;
+        globalBBOState.bestAskSize = update.askSize;
+        globalBBOState.bestAskExchangeId = update.exchangeId;
     } 
-    else if(update.exchange == globalBBO.bestAskEx) {
-        globalBBO.bestAsk = std::numeric_limits<double>::max();
-        for (auto& [ex, upd] : snapshots) {
-            if (upd.askPrice < globalBBO.bestAsk) {
-                globalBBO.bestAsk = upd.askPrice;
-                globalBBO.bestAskSize = upd.askSize;
-                globalBBO.bestAskEx = ex;
+    else if(update.exchangeId == globalBBOState.bestAskExchangeId) { // re-evaluate from snapshots if best ask exchange updated it's best ask
+        globalBBOState.bestAsk = std::numeric_limits<double>::max();
+        globalBBOState.bestAskSize = 0.0;
+        globalBBOState.bestAskExchangeId = ExchangeId::Count;
+
+        for (auto& snapshot : snapshots) {
+            if (snapshot.hasReceivedUpdate && snapshot.askPrice < globalBBOState.bestAsk) {
+                globalBBOState.bestAsk = snapshot.askPrice;
+                globalBBOState.bestAskSize = snapshot.askSize;
+                globalBBOState.bestAskExchangeId = snapshot.exchangeId;
             }
         }
     }
 }
 
-inline double AggregatorEngine::computeImbalance(double bidSize, double askSize) {
+double AggregatorEngine::computeImbalance(double bidSize, double askSize) {
     return (bidSize + askSize != 0.0) ? (bidSize - askSize) / (bidSize + askSize) : 0.0;
 }
 
-inline void AggregatorEngine::updateNetImbalance(const ExchangeUpdate& update) {
-    auto it = snapshots.find(update.exchange);
-    if(it != snapshots.end()) {
-        netImbalance.totalBid -= it->second.bidSize;
-        netImbalance.totalAsk -= it->second.askSize;
+void AggregatorEngine::updateNetImbalance(const ExchangeUpdate& update) {
+    // to index into AggregatorEngine snapshots state 
+    const auto updateIndex = ExchangeIdToIndex(update.exchangeId);
+
+    const auto& previous = snapshots[updateIndex];
+    if(previous.hasReceivedUpdate) {
+        netImbalanceState.totalBid -= previous.bidSize;
+        netImbalanceState.totalAsk -= previous.askSize;
     }
 
-    netImbalance.totalBid += update.bidSize;
-    netImbalance.totalAsk += update.askSize;
+    netImbalanceState.totalBid += update.bidSize;
+    netImbalanceState.totalAsk += update.askSize;
 
-    netImbalance.value = computeImbalance(netImbalance.totalBid, netImbalance.totalAsk);
+    netImbalanceState.value = computeImbalance(netImbalanceState.totalBid, netImbalanceState.totalAsk);
 }
 
-inline std::pair<double, double> AggregatorEngine::computeMidPrice(const ExchangeUpdate& update) {
+std::pair<double, double> AggregatorEngine::computeMidPrice(const ExchangeUpdate& update) {
     double updateSimpleMid = (update.bidPrice + update.askPrice) / 2.0;
 
     double denominator = update.bidSize + update.askSize;
@@ -98,43 +107,46 @@ void AggregatorEngine::ingestRaw(const std::string& exchange, const std::string&
     std::cout<<exchange<<" "<<rawData<<"\n";
 }
 
-inline MarketDataEvent AggregatorEngine::createEvent(
-    const ExchangeUpdate& update, const ExchangeUpdate& otherUpd,
+MarketDataEvent AggregatorEngine::createEvent(
+    const ExchangeUpdate& update, const ExchangeUpdate& snapshot,
     double updateImbalance, const std::pair<double, double>& updateMidPrice
 ) const {
-    MarketDataEvent event;
-    assignString(event.symbol, update.symbol);
+    MarketDataEvent event{};
 
-    assignString(event.exchange1, update.exchange);
-    assignString(event.exchange2, otherUpd.exchange);
+    // get index into AggregatorEngine state arrays
+    const auto snapshotIndex = ExchangeIdToIndex(snapshot.exchangeId);
+
+    event.symbol = update.symbol;
+    StringUtils::assignStringToArray(event.exchange1, ExchangeIdToExchangeName(update.exchangeId));
+    StringUtils::assignStringToArray(event.exchange2, ExchangeIdToExchangeName(snapshot.exchangeId));
 
     // Cross-exchange spread
-    event.spread12 = otherUpd.askPrice - update.bidPrice;
-    event.spread21 = update.askPrice - otherUpd.bidPrice;
+    event.spread12 = snapshot.askPrice - update.bidPrice;
+    event.spread21 = update.askPrice - snapshot.bidPrice;
 
     // Global BBO
-    assignString(event.bestBidExchange, globalBBO.bestBidEx);
-    event.bestBidPrice = globalBBO.bestBid;
-    event.bestBidSize = globalBBO.bestBidSize;
+    StringUtils::assignStringToArray(event.bestBidExchange, ExchangeIdToExchangeName(globalBBOState.bestBidExchangeId));
+    event.bestBidPrice = globalBBOState.bestBid;
+    event.bestBidSize = globalBBOState.bestBidSize;
 
-    assignString(event.bestAskExchange, globalBBO.bestAskEx);
-    event.bestAskPrice = globalBBO.bestAsk;
-    event.bestAskSize = globalBBO.bestAskSize;
+    StringUtils::assignStringToArray(event.bestAskExchange, ExchangeIdToExchangeName(globalBBOState.bestAskExchangeId));
+    event.bestAskPrice = globalBBOState.bestAsk;
+    event.bestAskSize = globalBBOState.bestAskSize;
 
     // Top-of-Book Imbalance
     event.imbalance1 = updateImbalance;
-    event.imbalance2 = exchangeImbalance.at(otherUpd.exchange);
+    event.imbalance2 = exchangeImbalanceState[snapshotIndex];
 
-    event.aggImbalance = netImbalance.value;
+    event.aggImbalance = netImbalanceState.value;
 
     // Mid-Price, Divergence
     const auto& [updateSimpleMid, updateWeightedMid] = updateMidPrice;
-    const auto& [otherSimpleMid, otherWeightedMid] = exchangeMidPrice.at(otherUpd.exchange);
+    const auto& [snapshotSimpleMid, snapshotWeightedMid] = exchangeMidPriceState[snapshotIndex];
     event.simpleMid1 = updateSimpleMid;
-    event.simpleMid2 = otherSimpleMid;
+    event.simpleMid2 = snapshotSimpleMid;
 
     event.weightedMid1 = updateWeightedMid;
-    event.weightedMid2 = otherWeightedMid;
+    event.weightedMid2 = snapshotWeightedMid;
     // arbitrage indication
     event.simpleDivergence = std::abs(event.simpleMid1 - event.simpleMid2);
     event.weightedDivergence = std::abs(event.weightedMid1 - event.weightedMid2);
@@ -143,23 +155,30 @@ inline MarketDataEvent AggregatorEngine::createEvent(
 }
 
 void AggregatorEngine::ingestUpdate(const ExchangeUpdate& update) {
+    if (update.exchangeId >= ExchangeId::Count) {
+        return;
+    }
     std::unique_lock<std::mutex> lock(ingestion_mtx);
 
     updateNetImbalance(update);
-    snapshots[update.exchange] = update;
+    
+    const auto updateIndex = ExchangeIdToIndex(update.exchangeId);
+    snapshots[updateIndex] = update;
+    snapshots[updateIndex].hasReceivedUpdate = true;
+
     updateGlobalBBO(update);
 
     double updateImbalance = computeImbalance(update.bidSize, update.askSize);
-    exchangeImbalance[update.exchange] = updateImbalance;
+    exchangeImbalanceState[updateIndex] = updateImbalance;
 
     auto updateMidPrice = computeMidPrice(update);
-    exchangeMidPrice[update.exchange] = updateMidPrice;
+    exchangeMidPriceState[updateIndex] = updateMidPrice;
 
-    for(const auto& [otherEx, otherUpd]: snapshots) {
-        if(otherEx==update.exchange) continue;
+    for(const auto& snapshot: snapshots) {
+        if(!snapshot.hasReceivedUpdate || snapshot.exchangeId == update.exchangeId) continue;
 
         MarketDataEvent event = createEvent(
-            update, otherUpd,
+            update, snapshot,
             updateImbalance, 
             updateMidPrice
         );
@@ -175,7 +194,7 @@ void AggregatorEngine::assignString(std::array<char, 16>& arr, const std::string
     std::strncpy(arr.data(), src.c_str(), arr.size() - 1);
 }
 
-inline void AggregatorEngine::coutEvent(const MarketDataEvent& event) {
+void AggregatorEngine::coutEvent(const MarketDataEvent& event) {
     std::cout << std::fixed << std::setprecision(4)
     <<"------["<<event.symbol.data()<<"]------\n"
     <<"Sequence Number: "<<event.sequence<<"\n"

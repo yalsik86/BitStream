@@ -6,10 +6,10 @@
 
 struct GlobalBBO {
     double bestBid{-1.0};
-    ExchangeId bestBidExchangeId{};
+    ExchangeId bestBidExchangeId{ExchangeId::Count};
     double bestBidSize{};
 
     double bestAsk{std::numeric_limits<double>::max()};
-    ExchangeId bestAskExchangeId{};
+    ExchangeId bestAskExchangeId{ExchangeId::Count};
     double bestAskSize{};
 };

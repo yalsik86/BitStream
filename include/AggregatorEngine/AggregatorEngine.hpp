@@ -6,7 +6,14 @@
 #include "Structs/ExchangeUpdate.hpp"
 #include "Structs/NetImbalance.hpp"
 #include "Structs/GlobalBBO.hpp"
-#include <unordered_map>
+#include "Utils/StringUtils.hpp"
+#include "Enums/ExchangeId.hpp"
+#include <array>
+#include <cstdint>
+#include <string>
+#include <utility>
+#include <vector>
+#include <limits>
 #include <memory>
 #include <atomic>
 #include <mutex>
@@ -26,31 +33,32 @@ class AggregatorEngine {
     DataDisseminator& disseminator;
 
     uint32_t seq = 0;
-    std::unordered_map<std::string, ExchangeUpdate> snapshots; // latest updates per-exchange
+
+    std::array<ExchangeUpdate, EXCHANGE_COUNT> snapshots{}; // latest updates per-exchange
     std::vector<std::unique_ptr<IExchangeFeed>> connectors;
     std::vector<std::jthread> threads;
     std::mutex ingestion_mtx;
 
     // ------ Global BBO Utilities ------
-    GlobalBBO globalBBO;
-    inline void updateGlobalBBO(const ExchangeUpdate& update);
+    GlobalBBO globalBBOState{};
+    void updateGlobalBBO(const ExchangeUpdate& update);
 
     // ------ Imbalance Utilities ------
-    std::unordered_map<std::string, double> exchangeImbalance; // per-exchange imbalance
-    inline double computeImbalance(double bid, double ask);
-    NetImbalance netImbalance;
-    inline void updateNetImbalance(const ExchangeUpdate& update);
+    std::array<double, EXCHANGE_COUNT> exchangeImbalanceState{}; // per-exchange imbalance
+    double computeImbalance(double bid, double ask);
+    NetImbalance netImbalanceState{};
+    void updateNetImbalance(const ExchangeUpdate& update);
 
     // ------ Mid-Price Utilities ------
-    std::unordered_map<std::string, std::pair<double, double>> exchangeMidPrice;
-    inline std::pair<double, double> computeMidPrice(const ExchangeUpdate& update);
+    std::array<std::pair<double, double>, EXCHANGE_COUNT> exchangeMidPriceState{}; // per-exchange mid-price (simple, weighted)
+    std::pair<double, double> computeMidPrice(const ExchangeUpdate& update);
 
     // ------ Event Utilities ------
-    inline MarketDataEvent createEvent(
+    MarketDataEvent createEvent(
         const ExchangeUpdate& update, const ExchangeUpdate& otherUpd,
         double updateImbalance, const std::pair<double, double>& updateMidPrice
     ) const;
     
-    inline void assignString(std::array<char, 16>& arr, const std::string& src) const;
-    inline void coutEvent(const MarketDataEvent& event);
+    void assignString(std::array<char, 16>& arr, const std::string& src) const;
+    void coutEvent(const MarketDataEvent& event);
 };
