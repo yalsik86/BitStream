@@ -106,7 +106,7 @@ std::optional<ExchangeUpdate> CryptoComFeed::parseRaw(const std::string& raw) {
     ExchangeUpdate update;
     update.exchangeId = ExchangeId::CryptoCom;
 
-    const auto& symbol = data["s"].get_ref<const std::string&>();
+    const auto& symbol = data["i"].get_ref<const std::string&>();
     StringUtils::assignStringToArray(update.symbol, symbol);
 
     update.bidPrice = std::stod(data["b"].get<std::string>());
