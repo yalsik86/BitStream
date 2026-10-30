@@ -7,7 +7,7 @@ struct ExchangeUpdate {
     ExchangeId exchangeId{};
     bool hasReceivedUpdate{false};
 
-    std::array<char, 8> symbol{};
+    std::array<char, 16> symbol{};
 
     double bidPrice{};
     double bidSize {};
