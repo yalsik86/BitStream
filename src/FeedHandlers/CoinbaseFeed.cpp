@@ -37,7 +37,7 @@ void CoinbaseFeed::connect() {
 
     nlohmann::json msg = {
         {"type", "subscribe"},
-        {"product_ids", {"BTC-USD"}},
+        {"product_ids", {"BTC-USDT"}},
         {"channels", {"ticker", "heartbeat"}} 
     };
     

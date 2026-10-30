@@ -39,7 +39,7 @@ void KrakenFeed::connect() {
         {"method", "subscribe"},
         {"params", {
             {"channel", "ticker"},
-            {"symbol", {"BTC/USD"}}
+            {"symbol", {"BTC/USDT"}}
         }}
     };
 
